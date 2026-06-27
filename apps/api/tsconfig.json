@@ -1,0 +1,11 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "outDir": "dist",
+    "rootDir": "src",
+    "paths": {
+      "@sportshot/types": ["../../packages/types/src"]
+    }
+  },
+  "include": ["src"]
+}

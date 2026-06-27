@@ -1,0 +1,227 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  photographer
+  team
+  admin
+}
+
+enum PhotographerTier {
+  new
+  active
+  pro
+  elite
+}
+
+enum SlotStatus {
+  open
+  booked
+  cancelled
+}
+
+enum OfferStatus {
+  pending
+  accepted
+  rejected
+  withdrawn
+}
+
+enum BookingStatus {
+  confirmed
+  completed
+  cancelled
+  disputed
+}
+
+enum PaymentStatus {
+  authorized
+  captured
+  transferred
+  refunded
+}
+
+model User {
+  id         String    @id @default(uuid())
+  email      String    @unique
+  role       UserRole
+  fullName   String
+  phone      String?
+  avatarUrl  String?
+  createdAt  DateTime  @default(now())
+  verifiedAt DateTime?
+
+  photographer Photographer?
+  team         Team?
+  reviews      Review[]
+  pushTokens   PushToken[]
+
+  @@map("users")
+}
+
+model Photographer {
+  id               String           @id @default(uuid())
+  userId           String           @unique
+  bio              String?
+  sports           String[]
+  city             String
+  tier             PhotographerTier @default(new)
+  commissionPct    Int              @default(15)
+  totalEarned      Int              @default(0)
+  stripeAccountId  String?
+  stripeOnboarded  Boolean          @default(false)
+  ratingAvg        Decimal          @default(0) @db.Decimal(3, 2)
+  ratingCount      Int              @default(0)
+
+  user     User               @relation(fields: [userId], references: [id])
+  slots    AvailabilitySlot[]
+  bookings Booking[]
+
+  @@index([city, tier, ratingAvg(sort: Desc)])
+  @@map("photographers")
+}
+
+model Team {
+  id        String  @id @default(uuid())
+  userId    String  @unique
+  clubName  String
+  sport     String
+  city      String
+  category  String?
+  logoUrl   String?
+  verified  Boolean @default(false)
+
+  user     User      @relation(fields: [userId], references: [id])
+  offers   Offer[]
+  bookings Booking[]
+
+  @@map("teams")
+}
+
+model AvailabilitySlot {
+  id             String     @id @default(uuid())
+  photographerId String
+  startsAt       DateTime
+  endsAt         DateTime
+  sport          String
+  city           String
+  status         SlotStatus @default(open)
+  createdAt      DateTime   @default(now())
+
+  photographer Photographer @relation(fields: [photographerId], references: [id])
+  offers       Offer[]
+
+  @@index([photographerId, startsAt])
+  @@index([city, sport, status, startsAt])
+  @@map("availability_slots")
+}
+
+model Offer {
+  id             String      @id @default(uuid())
+  slotId         String
+  teamId         String
+  eventName      String
+  budgetOffered  Int
+  deliverables   Json
+  message        String?
+  status         OfferStatus @default(pending)
+  createdAt      DateTime    @default(now())
+  expiresAt      DateTime
+
+  slot    AvailabilitySlot @relation(fields: [slotId], references: [id])
+  team    Team             @relation(fields: [teamId], references: [id])
+  booking Booking?
+
+  @@index([slotId, status])
+  @@index([teamId])
+  @@map("offers")
+}
+
+model Booking {
+  id             String        @id @default(uuid())
+  offerId        String        @unique
+  slotId         String
+  teamId         String
+  photographerId String
+  agreedPrice    Int
+  status         BookingStatus @default(confirmed)
+  createdAt      DateTime      @default(now())
+
+  offer        Offer        @relation(fields: [offerId], references: [id])
+  team         Team         @relation(fields: [teamId], references: [id])
+  photographer Photographer @relation(fields: [photographerId], references: [id])
+  payment      Payment?
+  delivery     Delivery?
+  reviews      Review[]
+
+  @@index([photographerId, status])
+  @@index([teamId, status])
+  @@map("bookings")
+}
+
+model Payment {
+  id                     String        @id @default(uuid())
+  bookingId              String        @unique
+  stripePaymentIntentId  String        @unique
+  stripeTransferId       String?
+  amount                 Int
+  commissionPct          Int
+  commissionAmount       Int
+  photographerPayout     Int
+  status                 PaymentStatus @default(authorized)
+  capturedAt             DateTime?
+  transferredAt          DateTime?
+
+  booking Booking @relation(fields: [bookingId], references: [id])
+
+  @@map("payments")
+}
+
+model Delivery {
+  id             String    @id @default(uuid())
+  bookingId      String    @unique
+  filesUrl       String[]
+  photoCount     Int
+  deliveredAt    DateTime  @default(now())
+  approvedAt     DateTime?
+  reviewDeadline DateTime
+
+  booking Booking @relation(fields: [bookingId], references: [id])
+
+  @@index([reviewDeadline])
+  @@map("deliveries")
+}
+
+model PushToken {
+  id        String   @id @default(uuid())
+  userId    String
+  token     String   @unique
+  platform  String
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("push_tokens")
+}
+
+model Review {
+  id         String   @id @default(uuid())
+  bookingId  String
+  reviewerId String
+  rating     Int
+  comment    String?
+  createdAt  DateTime @default(now())
+
+  booking  Booking @relation(fields: [bookingId], references: [id])
+  reviewer User    @relation(fields: [reviewerId], references: [id])
+
+  @@unique([bookingId, reviewerId])
+  @@map("reviews")
+}

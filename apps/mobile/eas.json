@@ -1,0 +1,47 @@
+{
+  "$schema": "https://raw.githubusercontent.com/expo/eas-cli/main/packages/eas-cli/schema/eas.schema.json",
+  "cli": {
+    "version": ">= 10.0.0",
+    "appVersionSource": "remote"
+  },
+  "build": {
+    "development": {
+      "developmentClient": true,
+      "distribution": "internal",
+      "env": {
+        "EXPO_PUBLIC_API_URL": "http://localhost:3000/api/v1",
+        "EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY": "REEMPLAZAR_CON_CLERK_KEY_DEV"
+      }
+    },
+    "preview": {
+      "distribution": "internal",
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://TU_PROYECTO.railway.app/api/v1",
+        "EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY": "REEMPLAZAR_CON_CLERK_KEY_PROD"
+      },
+      "ios": {
+        "simulator": false
+      }
+    },
+    "production": {
+      "autoIncrement": true,
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://TU_PROYECTO.railway.app/api/v1",
+        "EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY": "REEMPLAZAR_CON_CLERK_KEY_PROD"
+      }
+    }
+  },
+  "submit": {
+    "production": {
+      "ios": {
+        "appleId": "lucaspiq18@gmail.com",
+        "ascAppId": "REEMPLAZAR_CON_ASC_APP_ID",
+        "appleTeamId": "REEMPLAZAR_CON_APPLE_TEAM_ID"
+      },
+      "android": {
+        "serviceAccountKeyPath": "./google-service-account.json",
+        "track": "internal"
+      }
+    }
+  }
+}
