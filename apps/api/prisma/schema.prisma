@@ -109,13 +109,15 @@ model AvailabilitySlot {
   photographerId String
   startsAt       DateTime
   endsAt         DateTime
-  sport          String
+  sports         String[]
+  price          Int        @default(0)
   city           String
   status         SlotStatus @default(open)
   createdAt      DateTime   @default(now())
 
   photographer Photographer @relation(fields: [photographerId], references: [id])
   offers       Offer[]
+  bookings     Booking[]
 
   @@index([photographerId, startsAt])
   @@index([city, sport, status, startsAt])
@@ -153,9 +155,10 @@ model Booking {
   status         BookingStatus @default(confirmed)
   createdAt      DateTime      @default(now())
 
-  offer        Offer        @relation(fields: [offerId], references: [id])
-  team         Team         @relation(fields: [teamId], references: [id])
-  photographer Photographer @relation(fields: [photographerId], references: [id])
+  offer        Offer            @relation(fields: [offerId], references: [id])
+  slot         AvailabilitySlot @relation(fields: [slotId], references: [id])
+  team         Team             @relation(fields: [teamId], references: [id])
+  photographer Photographer     @relation(fields: [photographerId], references: [id])
   payment      Payment?
   delivery     Delivery?
   reviews      Review[]
