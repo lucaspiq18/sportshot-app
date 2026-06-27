@@ -5,7 +5,8 @@ import { prisma } from '../lib/prisma'
 const createSlotSchema = z.object({
   startsAt: z.string().datetime(),
   endsAt: z.string().datetime(),
-  sport: z.string().min(1),
+  sports: z.array(z.string()).min(1),
+  price: z.number().int().min(0),
   city: z.string().min(1),
 })
 
@@ -16,7 +17,6 @@ const searchSlotsSchema = z.object({
 })
 
 export async function slotsRoutes(app: FastifyInstance) {
-  // Fotógrafo publica disponibilidad
   app.post('/slots', async (req, reply) => {
     const body = createSlotSchema.parse(req.body)
     const photographerId = req.user.photographerId
@@ -30,7 +30,8 @@ export async function slotsRoutes(app: FastifyInstance) {
         photographerId,
         startsAt: new Date(body.startsAt),
         endsAt: new Date(body.endsAt),
-        sport: body.sport,
+        sports: body.sports,
+        price: body.price,
         city: body.city,
       },
     })
@@ -38,14 +39,13 @@ export async function slotsRoutes(app: FastifyInstance) {
     return { data: slot, error: null }
   })
 
-  // Buscar slots disponibles (vista del equipo)
   app.get('/slots', async (req, reply) => {
     const query = searchSlotsSchema.parse(req.query)
 
     const slots = await prisma.availabilitySlot.findMany({
       where: {
         status: 'open',
-        ...(query.sport && { sport: query.sport }),
+        ...(query.sport && { sports: { has: query.sport } }),
         ...(query.city && { city: query.city }),
         ...(query.date && {
           startsAt: {
@@ -67,7 +67,19 @@ export async function slotsRoutes(app: FastifyInstance) {
     return { data: slots, error: null }
   })
 
-  // Cancelar slot propio
+  app.get('/slots/mine', async (req, reply) => {
+    const photographerId = req.user.photographerId
+    if (!photographerId) return reply.status(403).send({ data: null, error: { code: 'NOT_PHOTOGRAPHER', message: '' } })
+
+    const slots = await prisma.availabilitySlot.findMany({
+      where: { photographerId },
+      include: { _count: { select: { offers: true } } },
+      orderBy: { startsAt: 'asc' },
+    })
+
+    return { data: slots, error: null }
+  })
+
   app.delete('/slots/:id', async (req, reply) => {
     const { id } = req.params as { id: string }
     const photographerId = req.user.photographerId
@@ -82,10 +94,7 @@ export async function slotsRoutes(app: FastifyInstance) {
       return reply.status(400).send({ data: null, error: { code: 'SLOT_BOOKED', message: 'No puedes cancelar un slot ya reservado' } })
     }
 
-    await prisma.availabilitySlot.update({
-      where: { id },
-      data: { status: 'cancelled' },
-    })
+    await prisma.availabilitySlot.update({ where: { id }, data: { status: 'cancelled' } })
 
     return { data: { ok: true }, error: null }
   })

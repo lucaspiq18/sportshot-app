@@ -31,11 +31,11 @@ export async function photographersRoutes(app: FastifyInstance) {
     })
 
     // Slots disponibles próximos (próximos 30 días)
-    const slots = await prisma.slot.findMany({
+    const slots = await prisma.availabilitySlot.findMany({
       where: {
         photographerId,
         startsAt: { gte: new Date() },
-        status: 'available',
+        status: 'open',
       },
       orderBy: { startsAt: 'asc' },
       take: 10,

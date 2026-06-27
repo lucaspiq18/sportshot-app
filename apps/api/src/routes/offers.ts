@@ -107,7 +107,7 @@ export async function offersRoutes(app: FastifyInstance) {
       where: { id },
       include: {
         slot: true,
-        team: true,
+        team: { include: { user: true } },
       },
     })
 
@@ -119,7 +119,7 @@ export async function offersRoutes(app: FastifyInstance) {
       return reply.status(400).send({ data: null, error: { code: 'OFFER_UNAVAILABLE', message: 'Esta oferta ya no está disponible' } })
     }
 
-    const photographer = await prisma.photographer.findUnique({ where: { id: photographerId } })
+    const photographer = await prisma.photographer.findUnique({ where: { id: photographerId }, include: { user: true } })
     if (!photographer?.stripeOnboarded) {
       return reply.status(400).send({ data: null, error: { code: 'STRIPE_NOT_ONBOARDED', message: 'Debes completar el onboarding de pagos antes de aceptar ofertas' } })
     }
