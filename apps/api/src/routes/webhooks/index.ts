@@ -42,7 +42,7 @@ export async function webhooksRoutes(app: FastifyInstance) {
             break
         }
       } catch (err) {
-        app.log.error({ event: event.type, err }, 'Webhook handler error')
+        console.error('Webhook handler error', event.type, err)
         // Devolvemos 500 para que Stripe reintente el evento
         return reply.status(500).send({ error: 'Handler failed' })
       }
@@ -78,7 +78,7 @@ export async function webhooksRoutes(app: FastifyInstance) {
             break
         }
       } catch (err) {
-        app.log.error({ event: event.type, err }, 'Connect webhook handler error')
+        console.error('Connect webhook handler error', event.type, err)
         return reply.status(500).send({ error: 'Handler failed' })
       }
 
