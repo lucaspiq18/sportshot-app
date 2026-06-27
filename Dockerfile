@@ -4,11 +4,13 @@ RUN apk add --no-cache openssl
 
 FROM base AS deps
 COPY package.json ./
+COPY tsconfig.base.json ./
 COPY apps/api/package.json ./apps/api/
 COPY packages/types/package.json ./packages/types/
 RUN npm install --workspace=apps/api --workspace=packages/types
 
 FROM deps AS builder
+COPY tsconfig.base.json ./
 COPY packages/types ./packages/types
 COPY apps/api ./apps/api
 RUN npm run build --workspace=apps/api
