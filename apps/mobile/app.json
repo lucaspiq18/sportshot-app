@@ -64,14 +64,14 @@
     ],
     "extra": {
       "eas": {
-        "projectId": "REEMPLAZAR_CON_EAS_PROJECT_ID"
+        "projectId": "bd7f5185-745c-43af-9d92-19c51169b01e"
       }
     },
     "experiments": {
       "typedRoutes": true
     },
     "updates": {
-      "url": "https://u.expo.dev/REEMPLAZAR_CON_EAS_PROJECT_ID"
+      "url": "https://u.expo.dev/bd7f5185-745c-43af-9d92-19c51169b01e"
     }
   }
 }
