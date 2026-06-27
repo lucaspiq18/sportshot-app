@@ -120,7 +120,7 @@ model AvailabilitySlot {
   bookings     Booking[]
 
   @@index([photographerId, startsAt])
-  @@index([city, sport, status, startsAt])
+  @@index([city, status, startsAt])
   @@map("availability_slots")
 }
 
