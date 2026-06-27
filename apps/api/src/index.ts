@@ -1,6 +1,5 @@
 import Fastify from 'fastify'
 import cors from '@fastify/cors'
-import jwt from '@fastify/jwt'
 import { slotsRoutes } from './routes/slots'
 import { offersRoutes } from './routes/offers'
 import { deliveriesRoutes } from './routes/deliveries'
@@ -31,7 +30,20 @@ async function main() {
   })
 
   await app.register(cors, { origin: true })
-  await app.register(jwt, { secret: process.env.JWT_SECRET! })
+
+  // Clerk usa RS256 — verificamos con su JWKS endpoint
+  // CLERK_JWKS_URL tiene formato: https://<clerk-domain>/.well-known/jwks.json
+  const { createRemoteJWKSet, jwtVerify } = await import('jose')
+  const JWKS = createRemoteJWKSet(new URL(process.env.CLERK_JWKS_URL!))
+
+  async function verifyClerkToken(token: string): Promise<{ sub: string } | null> {
+    try {
+      const { payload } = await jwtVerify(token, JWKS, { algorithms: ['RS256'] })
+      return payload as { sub: string }
+    } catch {
+      return null
+    }
+  }
 
   const WEBHOOK_ROUTES = [
     '/api/v1/webhooks/stripe',
@@ -44,26 +56,32 @@ async function main() {
     const publicRoutes = ['/health', ...WEBHOOK_ROUTES]
     if (publicRoutes.includes(req.url)) return
 
-    try {
-      await req.jwtVerify()
+    const authHeader = req.headers.authorization
+    if (!authHeader?.startsWith('Bearer ')) {
+      return reply.status(401).send({ data: null, error: { code: 'UNAUTHORIZED', message: 'Token requerido' } })
+    }
 
-      const userId = (req.user as { sub: string }).sub
-      const user = await prisma.user.findUnique({
-        where: { id: userId },
-        include: { photographer: true, team: true },
-      })
+    const token = authHeader.slice(7)
+    const payload = await verifyClerkToken(token)
 
-      if (!user) return reply.status(401).send({ data: null, error: { code: 'UNAUTHORIZED', message: 'Usuario no encontrado' } })
-
-      req.user = {
-        ...req.user,
-        userId: user.id,
-        role: user.role,
-        photographerId: user.photographer?.id ?? null,
-        teamId: user.team?.id ?? null,
-      }
-    } catch {
+    if (!payload) {
       return reply.status(401).send({ data: null, error: { code: 'UNAUTHORIZED', message: 'Token inválido' } })
+    }
+
+    const userId = payload.sub
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      include: { photographer: true, team: true },
+    })
+
+    if (!user) return reply.status(401).send({ data: null, error: { code: 'UNAUTHORIZED', message: 'Usuario no encontrado' } })
+
+    req.user = {
+      sub: userId,
+      userId: user.id,
+      role: user.role,
+      photographerId: user.photographer?.id ?? null,
+      teamId: user.team?.id ?? null,
     }
   })
 
