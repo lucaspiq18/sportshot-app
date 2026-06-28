@@ -7,7 +7,7 @@
   },
   "build": {
     "base": {
-      "node": "20.0.0"
+      "node": "22.0.0"
     },
     "development": {
       "developmentClient": true,
