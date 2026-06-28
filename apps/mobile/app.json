@@ -2,6 +2,7 @@
   "expo": {
     "name": "SportShot",
     "slug": "sportshot",
+    "owner": "sportshot",
     "version": "1.0.0",
     "runtimeVersion": {
       "policy": "appVersion"
