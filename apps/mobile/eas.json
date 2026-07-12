@@ -19,6 +19,9 @@
     },
     "preview": {
       "distribution": "internal",
+      "android": {
+        "buildType": "apk"
+      },
       "env": {
         "EXPO_PUBLIC_API_URL": "https://sportshot-app-production.up.railway.app",
         "EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY": "REEMPLAZAR_CON_CLERK_KEY"
