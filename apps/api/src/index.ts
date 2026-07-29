@@ -29,7 +29,12 @@ async function main() {
     }
   })
 
-  await app.register(cors, { origin: true })
+  await app.register(cors, {
+    origin: true,
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    credentials: true,
+  })
 
   // Clerk usa RS256 — verificamos con su JWKS endpoint
   // CLERK_JWKS_URL tiene formato: https://<clerk-domain>/.well-known/jwks.json
