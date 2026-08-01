@@ -46,12 +46,13 @@ export async function connectRoutes(app: FastifyInstance) {
 
     const { webReturnUrl } = (req.body as any) ?? {}
     const webParam = webReturnUrl ? `&webReturnUrl=${encodeURIComponent(webReturnUrl)}` : ''
+    const apiBase = process.env.API_BASE_URL ?? `https://${req.hostname}`
 
     // Generar link de onboarding (expira en ~10 min)
     const accountLink = await stripe.accountLinks.create({
       account: accountId,
-      refresh_url: `${process.env.API_BASE_URL}/api/v1/connect/refresh?photographerId=${photographerId}${webParam}`,
-      return_url: `${process.env.API_BASE_URL}/api/v1/connect/return?photographerId=${photographerId}${webParam}`,
+      refresh_url: `${apiBase}/api/v1/connect/refresh?photographerId=${photographerId}${webParam}`,
+      return_url: `${apiBase}/api/v1/connect/return?photographerId=${photographerId}${webParam}`,
       type: 'account_onboarding',
     })
 
@@ -102,10 +103,11 @@ export async function connectRoutes(app: FastifyInstance) {
 
     // Generar un nuevo link y redirigir al fotógrafo
     const webParam = webReturnUrl ? `&webReturnUrl=${encodeURIComponent(webReturnUrl)}` : ''
+    const apiBase = process.env.API_BASE_URL ?? `https://${req.hostname}`
     const accountLink = await stripe.accountLinks.create({
       account: photographer.stripeAccountId,
-      refresh_url: `${process.env.API_BASE_URL}/api/v1/connect/refresh?photographerId=${photographerId}${webParam}`,
-      return_url: `${process.env.API_BASE_URL}/api/v1/connect/return?photographerId=${photographerId}${webParam}`,
+      refresh_url: `${apiBase}/api/v1/connect/refresh?photographerId=${photographerId}${webParam}`,
+      return_url: `${apiBase}/api/v1/connect/return?photographerId=${photographerId}${webParam}`,
       type: 'account_onboarding',
     })
 
