@@ -6,7 +6,9 @@ FROM base AS deps
 COPY package.json ./
 COPY apps/api/package.json ./apps/api/
 COPY packages/types/package.json ./packages/types/
+COPY apps/api/prisma ./apps/api/prisma
 RUN npm install --workspace=apps/api --workspace=packages/types
+RUN npx prisma generate --schema=apps/api/prisma/schema.prisma
 
 FROM deps AS builder
 COPY packages/types ./packages/types
