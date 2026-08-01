@@ -59,7 +59,7 @@ export default function PhotographerOfferDetail() {
     try {
       const token = await getToken()
       if (!token) return
-      await apiClient(`/offers/${offer.id}/${action}`, token, { method: 'POST' })
+      await apiClient(`/offers/${offer.id}/${action}`, token, { method: 'POST', body: '{}' })
       router.push('/dashboard/photographer')
     } catch (e: any) {
       const msg = e?.message ?? 'Error al procesar la oferta'
