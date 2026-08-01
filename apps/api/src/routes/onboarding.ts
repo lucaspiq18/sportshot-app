@@ -162,7 +162,7 @@ export async function onboardingRoutes(app: FastifyInstance) {
       }),
       prisma.team.create({
         data: {
-          userId,
+          user: { connect: { id: userId } },
           clubName: body.clubName,
           sport: body.sport,
           city: body.city,
