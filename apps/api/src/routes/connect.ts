@@ -44,11 +44,14 @@ export async function connectRoutes(app: FastifyInstance) {
       })
     }
 
+    const { webReturnUrl } = (req.body as any) ?? {}
+    const webParam = webReturnUrl ? `&webReturnUrl=${encodeURIComponent(webReturnUrl)}` : ''
+
     // Generar link de onboarding (expira en ~10 min)
     const accountLink = await stripe.accountLinks.create({
       account: accountId,
-      refresh_url: `${process.env.API_BASE_URL}/api/v1/connect/refresh?photographerId=${photographerId}`,
-      return_url: `${process.env.API_BASE_URL}/api/v1/connect/return?photographerId=${photographerId}`,
+      refresh_url: `${process.env.API_BASE_URL}/api/v1/connect/refresh?photographerId=${photographerId}${webParam}`,
+      return_url: `${process.env.API_BASE_URL}/api/v1/connect/return?photographerId=${photographerId}${webParam}`,
       type: 'account_onboarding',
     })
 
@@ -59,7 +62,7 @@ export async function connectRoutes(app: FastifyInstance) {
   // Stripe redirige aquí tras completar el formulario.
   // Verificamos el estado real consultando la cuenta.
   app.get('/connect/return', async (req, reply) => {
-    const { photographerId } = req.query as { photographerId: string }
+    const { photographerId, webReturnUrl } = req.query as { photographerId: string; webReturnUrl?: string }
 
     const photographer = await prisma.photographer.findUnique({
       where: { id: photographerId },
@@ -77,14 +80,17 @@ export async function connectRoutes(app: FastifyInstance) {
       data: { stripeOnboarded: onboarded },
     })
 
-    // Deep link de vuelta a la app
+    if (webReturnUrl) {
+      return reply.redirect(webReturnUrl)
+    }
+    // Deep link de vuelta a la app móvil
     const status = onboarded ? 'success' : 'pending'
     return reply.redirect(`${process.env.APP_SCHEME}://connect/${status}`)
   })
 
   // 3. El link de onboarding expiró — Stripe redirige aquí para pedir uno nuevo
   app.get('/connect/refresh', async (req, reply) => {
-    const { photographerId } = req.query as { photographerId: string }
+    const { photographerId, webReturnUrl } = req.query as { photographerId: string; webReturnUrl?: string }
 
     const photographer = await prisma.photographer.findUnique({
       where: { id: photographerId },
@@ -95,10 +101,11 @@ export async function connectRoutes(app: FastifyInstance) {
     }
 
     // Generar un nuevo link y redirigir al fotógrafo
+    const webParam = webReturnUrl ? `&webReturnUrl=${encodeURIComponent(webReturnUrl)}` : ''
     const accountLink = await stripe.accountLinks.create({
       account: photographer.stripeAccountId,
-      refresh_url: `${process.env.API_BASE_URL}/api/v1/connect/refresh?photographerId=${photographerId}`,
-      return_url: `${process.env.API_BASE_URL}/api/v1/connect/return?photographerId=${photographerId}`,
+      refresh_url: `${process.env.API_BASE_URL}/api/v1/connect/refresh?photographerId=${photographerId}${webParam}`,
+      return_url: `${process.env.API_BASE_URL}/api/v1/connect/return?photographerId=${photographerId}${webParam}`,
       type: 'account_onboarding',
     })
 

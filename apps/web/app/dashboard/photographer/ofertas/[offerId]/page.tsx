@@ -35,7 +35,8 @@ export default function PhotographerOfferDetail() {
   const router = useRouter()
   const [offer, setOffer] = useState<Offer | null>(null)
   const [loading, setLoading] = useState(true)
-  const [acting, setActing] = useState<'accept' | 'reject' | null>(null)
+  const [acting, setActing] = useState<'accept' | 'reject' | 'stripe' | null>(null)
+  const [stripeError, setStripeError] = useState(false)
 
   useEffect(() => {
     async function load() {
@@ -62,8 +63,27 @@ export default function PhotographerOfferDetail() {
       await apiClient(`/offers/${offer.id}/${action}`, token, { method: 'POST', body: '{}' })
       router.push('/dashboard/photographer')
     } catch (e: any) {
-      const msg = e?.message ?? 'Error al procesar la oferta'
-      alert(msg)
+      if (e?.message?.includes('onboarding de pagos') || e?.message?.includes('STRIPE_NOT_ONBOARDED')) {
+        setStripeError(true)
+      } else {
+        alert(e?.message ?? 'Error al procesar la oferta')
+      }
+      setActing(null)
+    }
+  }
+
+  async function handleStripeConnect() {
+    setActing('stripe')
+    try {
+      const token = await getToken()
+      if (!token) return
+      const data = await apiClient<{ url: string }>('/connect/onboarding', token, {
+        method: 'POST',
+        body: JSON.stringify({ webReturnUrl: window.location.href }),
+      })
+      window.location.href = data.url
+    } catch (e: any) {
+      alert(e?.message ?? 'Error al iniciar el proceso de pagos')
       setActing(null)
     }
   }
@@ -126,6 +146,24 @@ export default function PhotographerOfferDetail() {
       )}
 
       <p className="text-xs text-center" style={{ color: 'var(--text-muted)' }}>Oferta válida hasta {expiresDate}</p>
+
+      {/* Banner Stripe si no está onboarded */}
+      {stripeError && (
+        <div className="p-4 rounded-xl border flex flex-col gap-3" style={{ background: 'rgba(251,191,36,0.08)', borderColor: 'rgba(251,191,36,0.3)' }}>
+          <p className="text-sm font-medium" style={{ color: '#fbbf24' }}>Cuenta de pagos requerida</p>
+          <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
+            Necesitas conectar tu cuenta bancaria con Stripe para poder cobrar por tus trabajos. Solo tarda unos minutos.
+          </p>
+          <button
+            onClick={handleStripeConnect}
+            disabled={acting === 'stripe'}
+            className="py-2.5 rounded-lg text-sm font-semibold disabled:opacity-50"
+            style={{ background: 'var(--accent)', color: '#0a0f14' }}
+          >
+            {acting === 'stripe' ? 'Redirigiendo...' : 'Conectar cuenta de pagos →'}
+          </button>
+        </div>
+      )}
 
       {/* Acciones */}
       {offer.status === 'pending' ? (
