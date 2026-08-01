@@ -2,7 +2,7 @@ import type { FastifyInstance } from 'fastify'
 import { randomUUID } from 'crypto'
 import { z } from 'zod'
 import { prisma } from '../lib/prisma'
-import { stripe, calculateSplit } from '../lib/stripe'
+import { stripe, calculateSplit, COMMISSION_PCT } from '../lib/stripe'
 import { notify } from '../lib/notifications'
 import { mail } from '../emails/index'
 import { scheduleEventReminder } from '../jobs/event-reminder'
@@ -70,6 +70,30 @@ export async function offersRoutes(app: FastifyInstance) {
     return { data: offer, error: null }
   })
 
+  // Fotógrafo ve el detalle de una oferta
+  app.get('/offers/:id', async (req, reply) => {
+    const { id } = req.params as { id: string }
+    const photographerId = req.user.photographerId
+
+    if (!photographerId) {
+      return reply.status(403).send({ data: null, error: { code: 'NOT_PHOTOGRAPHER', message: 'Acceso denegado' } })
+    }
+
+    const offer = await prisma.offer.findUnique({
+      where: { id },
+      include: {
+        slot: true,
+        team: { select: { clubName: true, logoUrl: true, sport: true, city: true } },
+      },
+    })
+
+    if (!offer || offer.slot.photographerId !== photographerId) {
+      return reply.status(404).send({ data: null, error: { code: 'NOT_FOUND', message: 'Oferta no encontrada' } })
+    }
+
+    return { data: offer, error: null }
+  })
+
   // Fotógrafo ve sus ofertas recibidas
   app.get('/offers/received', async (req, reply) => {
     const photographerId = req.user.photographerId
@@ -119,15 +143,21 @@ export async function offersRoutes(app: FastifyInstance) {
       return reply.status(400).send({ data: null, error: { code: 'OFFER_UNAVAILABLE', message: 'Esta oferta ya no está disponible' } })
     }
 
-    const photographer = await prisma.photographer.findUnique({ where: { id: photographerId }, include: { user: true } })
+    const photographer = await prisma.photographer.findUnique({
+      where: { id: photographerId },
+      include: { user: true, referredBy: { include: { user: true } } },
+    })
     if (!photographer?.stripeOnboarded) {
       return reply.status(400).send({ data: null, error: { code: 'STRIPE_NOT_ONBOARDED', message: 'Debes completar el onboarding de pagos antes de aceptar ofertas' } })
     }
 
-    // Generar el ID del booking antes de la transacción para usarlo en Payment
     const bookingId = randomUUID()
+    const referrer = photographer.referredBy ?? null
 
-    const { commissionAmount, photographerPayout } = calculateSplit(offer.budgetOffered, photographer.commissionPct)
+    const { commissionAmount, photographerPayout, referrerPayout } = calculateSplit(
+      offer.budgetOffered,
+      !!referrer,
+    )
 
     const paymentIntent = await stripe.paymentIntents.create({
       amount: offer.budgetOffered,
@@ -155,9 +185,11 @@ export async function offersRoutes(app: FastifyInstance) {
           bookingId,
           stripePaymentIntentId: paymentIntent.id,
           amount: offer.budgetOffered,
-          commissionPct: photographer.commissionPct,
+          commissionPct: COMMISSION_PCT,
           commissionAmount,
           photographerPayout,
+          referrerPhotographerId: referrer?.id ?? null,
+          referrerPayout,
         },
       }),
       prisma.offer.update({
