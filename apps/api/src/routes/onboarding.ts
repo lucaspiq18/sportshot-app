@@ -1,12 +1,18 @@
 import type { FastifyInstance } from 'fastify'
 import { z } from 'zod'
+import { randomBytes } from 'crypto'
 import { prisma } from '../lib/prisma'
+
+function generateReferralCode(): string {
+  return randomBytes(4).toString('hex').toUpperCase() // ej. "A3F9B2C1"
+}
 
 const photographerSchema = z.object({
   fullName: z.string().min(2).max(80),
   city: z.string().min(2).max(60),
   sports: z.array(z.string()).min(1).max(10),
   bio: z.string().max(300).optional(),
+  referralCode: z.string().max(20).optional(),
 })
 
 const teamSchema = z.object({
@@ -18,6 +24,55 @@ const teamSchema = z.object({
 })
 
 export async function onboardingRoutes(app: FastifyInstance) {
+
+  // Estadísticas de referidos del fotógrafo
+  app.get('/referrals', async (req, reply) => {
+    const photographerId = req.user.photographerId
+    if (!photographerId) return reply.status(403).send({ data: null, error: { code: 'NOT_PHOTOGRAPHER', message: 'Acceso denegado' } })
+
+    const photographer = await prisma.photographer.findUnique({
+      where: { id: photographerId },
+      select: {
+        referralCode: true,
+        referrals: {
+          select: {
+            id: true,
+            user: { select: { fullName: true } },
+            bookings: {
+              where: { payment: { referrerPhotographerId: photographerId, status: 'transferred' } },
+              select: { payment: { select: { referrerPayout: true } } },
+            },
+          },
+        },
+      },
+    })
+
+    const referrals = (photographer?.referrals ?? []).map(r => ({
+      id: r.id,
+      fullName: r.user.fullName,
+      completedBookings: r.bookings.length,
+      totalEarned: r.bookings.reduce((acc, b) => acc + (b.payment?.referrerPayout ?? 0), 0),
+    }))
+
+    return {
+      data: {
+        referralCode: photographer?.referralCode,
+        referrals,
+        totalReferrals: referrals.length,
+        totalEarned: referrals.reduce((acc, r) => acc + r.totalEarned, 0),
+      },
+      error: null,
+    }
+  })
+
+  // Datos del usuario autenticado (perfil)
+  app.get('/me', async (req) => {
+    const user = await prisma.user.findUnique({
+      where: { id: req.user.userId },
+      select: { id: true, fullName: true, email: true, avatarUrl: true, role: true, phone: true },
+    })
+    return { data: user, error: null }
+  })
 
   // Devuelve el estado de onboarding del usuario autenticado
   app.get('/onboarding/status', async (req) => {
@@ -54,6 +109,15 @@ export async function onboardingRoutes(app: FastifyInstance) {
       return reply.status(409).send({ data: null, error: { code: 'ALREADY_ONBOARDED', message: 'Ya tienes un perfil de fotógrafo' } })
     }
 
+    // Resolver referidor si viene un código
+    let referredById: string | null = null
+    if (body.referralCode) {
+      const referrer = await prisma.photographer.findUnique({
+        where: { referralCode: body.referralCode.toUpperCase() },
+      })
+      referredById = referrer?.id ?? null
+    }
+
     const [user, photographer] = await prisma.$transaction([
       prisma.user.update({
         where: { id: userId },
@@ -61,10 +125,12 @@ export async function onboardingRoutes(app: FastifyInstance) {
       }),
       prisma.photographer.create({
         data: {
-          userId,
+          user: { connect: { id: userId } },
           city: body.city,
           sports: body.sports,
           bio: body.bio,
+          referralCode: generateReferralCode(),
+          ...(referredById ? { referredBy: { connect: { id: referredById } } } : {}),
         },
       }),
     ])
