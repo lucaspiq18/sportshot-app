@@ -82,12 +82,16 @@ async function main() {
     if (!user) {
       const email = (payload as any).email_addresses?.[0]?.email_address ?? (payload as any).email ?? ''
       const fullName = [(payload as any).first_name, (payload as any).last_name].filter(Boolean).join(' ') || 'Usuario'
-      user = await prisma.user.upsert({
-        where: { id: userId },
-        create: { id: userId, email, fullName, role: 'pending' },
-        update: {},
-        include: { photographer: true, team: true },
-      })
+      // Try to find by email first (user may exist with different id)
+      const existing = email ? await prisma.user.findUnique({ where: { email }, include: { photographer: true, team: true } }) : null
+      if (existing) {
+        user = existing
+      } else {
+        user = await prisma.user.create({
+          data: { id: userId, email, fullName, role: 'pending' },
+          include: { photographer: true, team: true },
+        })
+      }
     }
 
     req.user = {
