@@ -1,6 +1,7 @@
 'use client'
 import Link from 'next/link'
 import { useState } from 'react'
+import { Logo } from '@/components/Logo'
 
 export default function Contacto() {
   const [sent, setSent] = useState(false)
@@ -16,8 +17,7 @@ export default function Contacto() {
     <main className="min-h-screen" style={{ background: 'var(--bg)' }}>
       <nav className="sticky top-0 z-50 flex items-center justify-between px-8 py-4 border-b backdrop-blur-sm" style={{ borderColor: 'var(--border)', background: 'rgba(10,15,20,0.85)' }}>
         <Link href="/" className="flex items-center gap-2">
-          <div className="w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold" style={{ background: 'var(--accent)', color: '#0a0f14' }}>F</div>
-          <span className="text-base font-bold">Fokusport</span>
+          <Logo height={28} />
         </Link>
         <div className="flex gap-3">
           <Link href="/sign-in" className="px-4 py-2 rounded-lg text-sm font-medium" style={{ color: 'var(--text-muted)' }}>Iniciar sesión</Link>

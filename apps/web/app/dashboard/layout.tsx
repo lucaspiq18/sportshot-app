@@ -1,6 +1,7 @@
 import { UserButton } from '@clerk/nextjs'
 import { auth } from '@clerk/nextjs/server'
 import Link from 'next/link'
+import { Logo } from '@/components/Logo'
 import { apiServer } from '@/lib/api'
 
 type Me = { fullName: string; avatarUrl: string | null; role: string }
@@ -20,7 +21,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
     <div className="min-h-screen flex flex-col" style={{ background: 'var(--bg)' }}>
       <nav className="flex items-center justify-between px-8 py-4 border-b" style={{ borderColor: 'var(--border)' }}>
         <div className="flex items-center gap-6">
-          <Link href="/dashboard" className="text-lg font-bold" style={{ color: 'var(--accent)' }}>Fokusport</Link>
+          <Link href="/dashboard"><Logo height={28} /></Link>
         </div>
         <div className="flex items-center gap-3">
           <Link

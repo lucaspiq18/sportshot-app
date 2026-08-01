@@ -1,12 +1,12 @@
 import Link from 'next/link'
+import { Logo } from '@/components/Logo'
 
 export default function Pricing() {
   return (
     <main className="min-h-screen" style={{ background: 'var(--bg)' }}>
       <nav className="sticky top-0 z-50 flex items-center justify-between px-8 py-4 border-b backdrop-blur-sm" style={{ borderColor: 'var(--border)', background: 'rgba(10,15,20,0.85)' }}>
         <Link href="/" className="flex items-center gap-2">
-          <div className="w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold" style={{ background: 'var(--accent)', color: '#0a0f14' }}>F</div>
-          <span className="text-base font-bold">Fokusport</span>
+          <Logo height={28} />
         </Link>
         <div className="flex gap-3">
           <Link href="/sign-in" className="px-4 py-2 rounded-lg text-sm font-medium" style={{ color: 'var(--text-muted)' }}>Iniciar sesión</Link>
@@ -29,7 +29,7 @@ export default function Pricing() {
               <span className="text-4xl font-bold">Gratis</span>
               <span className="text-sm ml-2" style={{ color: 'var(--text-muted)' }}>para registrarte</span>
             </div>
-            <p className="text-sm mb-6" style={{ color: 'var(--text-muted)' }}>Pagas exactamente el precio acordado con el fotógrafo. Fokusport deduce su comisión del pago al fotógrafo, no añade nada extra al equipo.</p>
+            <p className="text-sm mb-6" style={{ color: 'var(--text-muted)' }}>Pagas exactamente el precio acordado con el fotógrafo. FokuSport deduce su comisión del pago al fotógrafo, no añade nada extra al equipo.</p>
             <ul className="flex flex-col gap-3 text-sm mb-8" style={{ color: 'var(--text-muted)' }}>
               {[
                 'Acceso a todos los fotógrafos',
@@ -60,7 +60,7 @@ export default function Pricing() {
               <span className="text-4xl font-bold">90%</span>
               <span className="text-sm ml-2" style={{ color: 'var(--text-muted)' }}>para ti</span>
             </div>
-            <p className="text-sm mb-6" style={{ color: 'var(--accent)' }}>Cobras el 90% de lo acordado · Fokusport retiene el 10%</p>
+            <p className="text-sm mb-6" style={{ color: 'var(--accent)' }}>Cobras el 90% de lo acordado · FokuSport retiene el 10%</p>
             <ul className="flex flex-col gap-3 text-sm mb-8" style={{ color: 'var(--text-muted)' }}>
               {[
                 'Perfil público con tus deportes y ciudad',
@@ -88,10 +88,10 @@ export default function Pricing() {
           <h2 className="text-2xl font-bold mb-8 text-center">Preguntas sobre precios</h2>
           <div className="flex flex-col gap-4">
             {[
-              { q: '¿Cuánto cobra Fokusport de comisión?', a: 'Fokusport retiene un 10% del precio acordado entre el equipo y el fotógrafo. El equipo paga siempre el precio exacto que negoció — el 10% se deduce del pago al fotógrafo, no se añade encima.' },
+              { q: '¿Cuánto cobra FokuSport de comisión?', a: 'FokuSport retiene un 10% del precio acordado entre el equipo y el fotógrafo. El equipo paga siempre el precio exacto que negoció — el 10% se deduce del pago al fotógrafo, no se añade encima.' },
               { q: '¿Cómo funciona el sistema de pago protegido?', a: 'Cuando un equipo acepta una oferta, el pago queda retenido de forma segura. El dinero solo se libera al fotógrafo cuando el equipo confirma haber recibido las fotos. Nunca pierdes dinero.' },
               { q: '¿Cuándo cobra el fotógrafo?', a: 'Una vez el equipo descarga o confirma las fotos, el pago se transfiere al fotógrafo en 1-2 días hábiles a través de Stripe Connect.' },
-              { q: '¿Hay algún coste de registro?', a: 'No. Registrarse en Fokusport es completamente gratuito tanto para equipos como para fotógrafos.' },
+              { q: '¿Hay algún coste de registro?', a: 'No. Registrarse en FokuSport es completamente gratuito tanto para equipos como para fotógrafos.' },
             ].map((item) => (
               <div key={item.q} className="p-6 rounded-xl border" style={{ background: 'var(--surface)', borderColor: 'var(--border)' }}>
                 <h3 className="font-semibold mb-2">{item.q}</h3>

@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { auth } from '@clerk/nextjs/server'
 import { redirect } from 'next/navigation'
+import { Logo } from '@/components/Logo'
 
 export default async function Home() {
   const { userId } = await auth()
@@ -12,8 +13,7 @@ export default async function Home() {
       {/* Nav */}
       <nav className="sticky top-0 z-50 flex items-center justify-between px-8 py-4 border-b backdrop-blur-sm" style={{ borderColor: 'var(--border)', background: 'rgba(10,15,20,0.85)' }}>
         <div className="flex items-center gap-2">
-          <div className="w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold" style={{ background: 'var(--accent)', color: '#0a0f14' }}>F</div>
-          <span className="text-base font-bold tracking-tight" style={{ color: 'var(--text)' }}>Fokusport</span>
+          <Logo height={28} />
         </div>
         <div className="hidden md:flex items-center gap-6 text-sm" style={{ color: 'var(--text-muted)' }}>
           <Link href="/como-funciona" className="hover:opacity-80 transition-opacity">Cómo funciona</Link>
@@ -93,7 +93,7 @@ export default async function Home() {
       {/* Para quién */}
       <section id="para-quien" className="py-24 px-8" style={{ background: 'var(--surface)' }}>
         <div className="max-w-5xl mx-auto">
-          <h2 className="text-3xl font-bold text-center mb-16">¿Para quién es Fokusport?</h2>
+          <h2 className="text-3xl font-bold text-center mb-16">¿Para quién es FokuSport?</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <div className="p-8 rounded-2xl border" style={{ background: 'var(--bg)', borderColor: 'var(--border)' }}>
               <div className="w-10 h-10 rounded-xl flex items-center justify-center text-lg mb-6" style={{ background: 'rgba(126,200,227,0.1)' }}>⚽</div>
@@ -141,11 +141,8 @@ export default async function Home() {
       {/* Footer */}
       <footer className="border-t px-8 py-10" style={{ borderColor: 'var(--border)' }}>
         <div className="max-w-5xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-2">
-            <div className="w-6 h-6 rounded-md flex items-center justify-center text-xs font-bold" style={{ background: 'var(--accent)', color: '#0a0f14' }}>F</div>
-            <span className="text-sm font-semibold">Fokusport</span>
-          </div>
-          <p className="text-xs" style={{ color: 'var(--text-muted)' }}>© 2026 Fokusport. Todos los derechos reservados.</p>
+          <Logo height={22} />
+          <p className="text-xs" style={{ color: 'var(--text-muted)' }}>© 2026 FokuSport. Todos los derechos reservados.</p>
           <div className="flex gap-6 text-xs" style={{ color: 'var(--text-muted)' }}>
             <Link href="#" className="hover:opacity-80">Privacidad</Link>
             <Link href="#" className="hover:opacity-80">Términos</Link>
