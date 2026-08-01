@@ -82,8 +82,10 @@ async function main() {
     if (!user) {
       const email = (payload as any).email_addresses?.[0]?.email_address ?? (payload as any).email ?? ''
       const fullName = [(payload as any).first_name, (payload as any).last_name].filter(Boolean).join(' ') || 'Usuario'
-      user = await prisma.user.create({
-        data: { id: userId, email, fullName, role: 'pending' },
+      user = await prisma.user.upsert({
+        where: { id: userId },
+        create: { id: userId, email, fullName, role: 'pending' },
+        update: {},
         include: { photographer: true, team: true },
       })
     }
