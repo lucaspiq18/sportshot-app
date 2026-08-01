@@ -90,6 +90,16 @@ async function main() {
     }
   })
 
+  // One-time migration: add referral columns if missing
+  try {
+    await prisma.$executeRawUnsafe(`ALTER TABLE "photographers" ADD COLUMN IF NOT EXISTS "referralCode" TEXT UNIQUE`)
+    await prisma.$executeRawUnsafe(`ALTER TABLE "photographers" ADD COLUMN IF NOT EXISTS "referredById" TEXT REFERENCES "photographers"("id") ON DELETE SET NULL`)
+    await prisma.$executeRawUnsafe(`ALTER TABLE "payments" ADD COLUMN IF NOT EXISTS "referrerPhotographerId" TEXT`)
+    await prisma.$executeRawUnsafe(`ALTER TABLE "payments" ADD COLUMN IF NOT EXISTS "referrerPayout" INTEGER NOT NULL DEFAULT 0`)
+  } catch (e) {
+    app.log.warn('Migration step skipped: ' + (e as Error).message)
+  }
+
   app.get('/health', async () => ({ ok: true }))
   await app.register(slotsRoutes, { prefix: '/api/v1' })
   await app.register(offersRoutes, { prefix: '/api/v1' })
