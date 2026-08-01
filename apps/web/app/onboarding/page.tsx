@@ -42,7 +42,7 @@ export default function OnboardingPage() {
   if (!role) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center gap-8 px-6" style={{ background: 'var(--bg)' }}>
-        <h1 className="text-3xl font-bold">¿Cómo quieres usar Fokusport?</h1>
+        <h1 className="text-3xl font-bold">¿Cómo quieres usar FokuSport?</h1>
         <p className="text-sm" style={{ color: 'var(--text-muted)' }}>No podrás cambiar el rol después del registro</p>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-xl">
           {[

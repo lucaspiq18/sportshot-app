@@ -26,9 +26,9 @@ export async function presignedUploadUrl(key: string, contentType: string): Prom
 
 // URL prefirmada para descarga privada (GET)
 // Expira en 1 hora — el equipo descarga las fotos en ese tiempo
-export async function presignedDownloadUrl(key: string): Promise<string> {
+export async function presignedDownloadUrl(key: string, expiresIn = 3600): Promise<string> {
   const command = new GetObjectCommand({ Bucket: BUCKET, Key: key })
-  return getSignedUrl(r2, command, { expiresIn: 3600 })
+  return getSignedUrl(r2, command, { expiresIn })
 }
 
 // Eliminar un objeto (por si el fotógrafo reemplaza la entrega)
@@ -42,4 +42,6 @@ export const r2Key = {
     `deliveries/${bookingId}/${filename}`,
   portfolio: (photographerId: string, filename: string) =>
     `portfolio/${photographerId}/${filename}`,
+  avatar: (userId: string, filename: string) =>
+    `avatars/${userId}/${filename}`,
 }

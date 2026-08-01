@@ -32,6 +32,14 @@ export async function onDeliveryApproved(bookingId: string) {
     },
   })
 
+  // Cargar referidor si existe
+  const referrerPhotographer = payment?.referrerPhotographerId
+    ? await prisma.photographer.findUnique({
+        where: { id: payment.referrerPhotographerId },
+        include: { user: true },
+      })
+    : null
+
   if (!payment || payment.status !== 'authorized') return
 
   // Capturar el PaymentIntent (sacar el dinero de la tarjeta del equipo)
@@ -45,7 +53,7 @@ export async function onDeliveryApproved(bookingId: string) {
   // Cancelar el job automático de 48h — ya no es necesario
   await releaseFundsQueue.remove(`release-${payment.bookingId}`)
 
-  // Crear el transfer al fotógrafo
+  // Transfer al fotógrafo
   const transfer = await stripe.transfers.create({
     amount: payment.photographerPayout,
     currency: 'eur',
@@ -53,11 +61,24 @@ export async function onDeliveryApproved(bookingId: string) {
     metadata: { bookingId },
   })
 
+  // Transfer al referidor (1%) si existe y tiene cuenta Stripe
+  let referrerTransferId: string | null = null
+  if (referrerPhotographer?.stripeOnboarded && referrerPhotographer.stripeAccountId && payment.referrerPayout > 0) {
+    const referrerTransfer = await stripe.transfers.create({
+      amount: payment.referrerPayout,
+      currency: 'eur',
+      destination: referrerPhotographer.stripeAccountId,
+      metadata: { bookingId, type: 'referral' },
+    })
+    referrerTransferId = referrerTransfer.id
+  }
+
   await prisma.$transaction([
     prisma.payment.update({
       where: { id: payment.id },
       data: {
         stripeTransferId: transfer.id,
+        stripeReferrerTransferId: referrerTransferId,
         status: 'transferred',
         transferredAt: new Date(),
       },

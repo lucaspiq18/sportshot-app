@@ -145,7 +145,38 @@ export async function uploadsRoutes(app: FastifyInstance) {
     return { data: { urls: downloadUrls, expiresIn: 3600 }, error: null }
   })
 
-  // 4. Fotógrafo sube fotos al portfolio
+  // 4. Cualquier usuario sube su foto de perfil (presigned PUT → confirm)
+  app.post('/uploads/avatar', async (req, reply) => {
+    const body = z.object({
+      contentType: z.enum(ALLOWED_TYPES),
+      filename: z.string().min(1),
+    }).parse(req.body)
+
+    const userId = req.user.userId
+    const ext = body.filename.split('.').pop() ?? 'jpg'
+    const key = r2Key.avatar(userId, `${randomUUID()}.${ext}`)
+    const uploadUrl = await presignedUploadUrl(key, body.contentType)
+
+    return { data: { uploadUrl, key }, error: null }
+  })
+
+  app.post('/uploads/avatar/confirm', async (req, reply) => {
+    const body = z.object({ key: z.string().min(1) }).parse(req.body)
+    const userId = req.user.userId
+
+    // Generar URL de descarga con 1 año de validez para guardarla en BD
+    // 7 días — suficiente para MVP; se regenera en próximo login
+    const avatarUrl = await presignedDownloadUrl(body.key, 604800)
+
+    await prisma.user.update({
+      where: { id: userId },
+      data: { avatarUrl },
+    })
+
+    return { data: { avatarUrl }, error: null }
+  })
+
+  // 5. Fotógrafo sube fotos al portfolio
   app.post('/uploads/portfolio', async (req, reply) => {
     const body = portfolioUploadSchema.parse(req.body)
     const photographerId = req.user.photographerId
