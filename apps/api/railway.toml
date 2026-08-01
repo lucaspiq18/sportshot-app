@@ -3,7 +3,7 @@ builder = "DOCKERFILE"
 dockerfilePath = "apps/api/Dockerfile"
 
 [deploy]
-startCommand = "npx prisma migrate deploy && node dist/index.js"
+startCommand = "until npx prisma migrate deploy; do echo 'Waiting for DB...'; sleep 3; done && node dist/index.js"
 healthcheckPath = "/health"
 healthcheckTimeout = 30
 restartPolicyType = "ON_FAILURE"
