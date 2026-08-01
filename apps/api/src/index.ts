@@ -74,12 +74,19 @@ async function main() {
     }
 
     const userId = payload.sub
-    const user = await prisma.user.findUnique({
+    let user = await prisma.user.findUnique({
       where: { id: userId },
       include: { photographer: true, team: true },
     })
 
-    if (!user) return reply.status(401).send({ data: null, error: { code: 'UNAUTHORIZED', message: 'Usuario no encontrado' } })
+    if (!user) {
+      const email = (payload as any).email_addresses?.[0]?.email_address ?? (payload as any).email ?? ''
+      const fullName = [(payload as any).first_name, (payload as any).last_name].filter(Boolean).join(' ') || 'Usuario'
+      user = await prisma.user.create({
+        data: { id: userId, email, fullName, role: 'pending' },
+        include: { photographer: true, team: true },
+      })
+    }
 
     req.user = {
       sub: userId,
