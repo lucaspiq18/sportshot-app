@@ -11,6 +11,7 @@ RUN npm install --workspace=apps/api --workspace=packages/types
 FROM deps AS builder
 COPY packages/types ./packages/types
 COPY apps/api ./apps/api
+RUN npx prisma generate --schema=apps/api/prisma/schema.prisma
 RUN npm run build --workspace=apps/api
 
 FROM base AS runner
