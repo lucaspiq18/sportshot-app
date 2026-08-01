@@ -8,6 +8,7 @@ datasource db {
 }
 
 enum UserRole {
+  pending
   photographer
   team
   admin
@@ -72,16 +73,20 @@ model Photographer {
   sports           String[]
   city             String
   tier             PhotographerTier @default(new)
-  commissionPct    Int              @default(15)
+  commissionPct    Int              @default(10)
   totalEarned      Int              @default(0)
   stripeAccountId  String?
   stripeOnboarded  Boolean          @default(false)
   ratingAvg        Decimal          @default(0) @db.Decimal(3, 2)
   ratingCount      Int              @default(0)
+  referralCode     String           @unique
+  referredById     String?
 
-  user     User               @relation(fields: [userId], references: [id])
-  slots    AvailabilitySlot[]
-  bookings Booking[]
+  user       User               @relation(fields: [userId], references: [id])
+  referredBy Photographer?      @relation("Referrals", fields: [referredById], references: [id])
+  referrals  Photographer[]     @relation("Referrals")
+  slots      AvailabilitySlot[]
+  bookings   Booking[]
 
   @@index([city, tier, ratingAvg(sort: Desc)])
   @@map("photographers")
@@ -171,13 +176,16 @@ model Booking {
 model Payment {
   id                     String        @id @default(uuid())
   bookingId              String        @unique
-  stripePaymentIntentId  String        @unique
-  stripeTransferId       String?
-  amount                 Int
-  commissionPct          Int
-  commissionAmount       Int
-  photographerPayout     Int
-  status                 PaymentStatus @default(authorized)
+  stripePaymentIntentId      String        @unique
+  stripeTransferId           String?
+  stripeReferrerTransferId   String?
+  amount                     Int
+  commissionPct              Int
+  commissionAmount           Int
+  photographerPayout         Int
+  referrerPhotographerId     String?
+  referrerPayout             Int           @default(0)
+  status                     PaymentStatus @default(authorized)
   capturedAt             DateTime?
   transferredAt          DateTime?
 
