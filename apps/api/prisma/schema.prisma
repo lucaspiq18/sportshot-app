@@ -74,6 +74,7 @@ model User {
   photographer Photographer?
   team         Team?
   reviews      Review[]
+  messages     Message[]
   pushTokens   PushToken[]
 
   @@map("users")
@@ -185,6 +186,7 @@ model Booking {
   payment      Payment?
   delivery     Delivery?
   reviews      Review[]
+  messages     Message[]
 
   @@index([photographerId, status])
   @@index([teamId, status])
@@ -293,4 +295,18 @@ model Review {
 
   @@unique([bookingId, reviewerId])
   @@map("reviews")
+}
+
+model Message {
+  id        String   @id @default(uuid())
+  bookingId String
+  senderId  String
+  content   String
+  createdAt DateTime @default(now())
+
+  booking Booking @relation(fields: [bookingId], references: [id])
+  sender  User    @relation(fields: [senderId], references: [id])
+
+  @@index([bookingId, createdAt])
+  @@map("messages")
 }

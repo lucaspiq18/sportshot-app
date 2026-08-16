@@ -10,6 +10,7 @@ import { reviewsRoutes } from './routes/reviews'
 import { onboardingRoutes } from './routes/onboarding'
 import { photographersRoutes } from './routes/photographers'
 import { teamEventsRoutes } from './routes/team-events'
+import { bookingsRoutes } from './routes/bookings'
 import { webhooksRoutes } from './routes/webhooks/index'
 import { startReleaseFundsWorker } from './jobs/release-funds'
 import { startEventReminderWorker } from './jobs/event-reminder'
@@ -124,6 +125,7 @@ async function main() {
   await app.register(onboardingRoutes, { prefix: '/api/v1' })
   await app.register(photographersRoutes, { prefix: '/api/v1' })
   await app.register(teamEventsRoutes, { prefix: '/api/v1' })
+  await app.register(bookingsRoutes, { prefix: '/api/v1' })
   await app.register(webhooksRoutes, { prefix: '/api/v1' })
 
   startReleaseFundsWorker()
