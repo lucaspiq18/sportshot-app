@@ -23,7 +23,6 @@ export async function bookingsRoutes(app: FastifyInstance) {
         bid: { include: { teamEvent: { select: { eventName: true, eventDate: true, city: true } } } },
         team: { select: { clubName: true } },
         photographer: { select: { user: { select: { fullName: true } } } },
-        _count: { select: { messages: true } },
       },
       orderBy: { createdAt: 'desc' },
     })

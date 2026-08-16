@@ -10,7 +10,6 @@ type Booking = {
   bid: { teamEvent: { eventName: string; eventDate: string; city: string } } | null
   team: { clubName: string }
   photographer: { user: { fullName: string } }
-  _count: { messages: number }
 }
 
 const STATUS_LABEL: Record<string, string> = {
@@ -80,11 +79,6 @@ export default async function AcuerdosPage() {
                   </p>
                 </div>
                 <div className="flex items-center gap-3 flex-shrink-0">
-                  {b._count.messages > 0 && (
-                    <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: 'rgba(126,200,227,0.1)', color: 'var(--accent)' }}>
-                      💬 {b._count.messages}
-                    </span>
-                  )}
                   <div className="text-right">
                     <p className="font-bold text-sm">{(b.agreedPrice / 100).toFixed(0)} €</p>
                     <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: sc.bg, color: sc.text }}>
