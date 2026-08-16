@@ -17,6 +17,7 @@ type TeamEvent = {
   eventName: string
   sport: string
   city: string
+  localidad: string | null
   eventDate: string
   budget: number
   description: string | null
@@ -99,7 +100,7 @@ export default function EventoDetailPhotographerPage() {
       <section className="p-5 rounded-2xl border flex flex-col gap-3" style={{ background: 'var(--surface)', borderColor: 'var(--border)' }}>
         <Row label="Fecha" value={eventDate} />
         <Row label="Deporte" value={event.sport} />
-        <Row label="Ciudad" value={event.city} />
+        <Row label="Ubicación" value={event.localidad ? `${event.localidad}, ${event.city}` : event.city} />
         <Row label="Presupuesto del equipo" value={`${(event.budget / 100).toFixed(0)} €`} accent />
       </section>
 

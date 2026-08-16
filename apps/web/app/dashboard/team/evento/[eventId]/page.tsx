@@ -21,6 +21,7 @@ type TeamEvent = {
   eventName: string
   sport: string
   city: string
+  localidad: string | null
   eventDate: string
   budget: number
   description: string | null
@@ -85,7 +86,7 @@ export default function EventoDetailPage() {
         <div className="flex items-start justify-between gap-4">
           <div>
             <h1 className="text-2xl font-bold">{event.eventName}</h1>
-            <p className="text-sm mt-1" style={{ color: 'var(--text-muted)' }}>{event.sport} · {event.city} · {eventDate}</p>
+            <p className="text-sm mt-1" style={{ color: 'var(--text-muted)' }}>{event.sport} · {event.localidad ? `${event.localidad}, ${event.city}` : event.city} · {eventDate}</p>
           </div>
           <span className="px-2 py-1 rounded-full text-xs font-medium shrink-0"
             style={{
