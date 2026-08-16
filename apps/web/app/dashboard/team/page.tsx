@@ -77,6 +77,20 @@ export default async function TeamDashboard() {
         )}
       </section>
 
+      {/* Publicar partido */}
+      <Link href="/dashboard/team/eventos"
+        className="flex items-center justify-between p-5 rounded-2xl border transition-colors hover:border-[var(--accent)]"
+        style={{ background: 'var(--surface)', borderColor: 'var(--border)' }}>
+        <div className="flex items-center gap-4">
+          <div className="w-10 h-10 rounded-xl flex items-center justify-center text-xl" style={{ background: 'rgba(126,200,227,0.1)' }}>🏟️</div>
+          <div>
+            <p className="font-semibold text-sm">Mis partidos publicados</p>
+            <p className="text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>Publica tu partido y recibe propuestas de fotógrafos</p>
+          </div>
+        </div>
+        <span style={{ color: 'var(--accent)' }}>→</span>
+      </Link>
+
       {/* Reseñas pendientes */}
       <Link href="/dashboard/resenas"
         className="flex items-center justify-between p-5 rounded-2xl border transition-colors hover:border-[var(--accent)]"

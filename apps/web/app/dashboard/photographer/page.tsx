@@ -63,6 +63,20 @@ export default async function PhotographerDashboard() {
         <span style={{ color: 'var(--accent)' }}>→</span>
       </Link>
 
+      {/* Eventos de equipos */}
+      <Link href="/dashboard/photographer/eventos"
+        className="flex items-center justify-between p-5 rounded-2xl border transition-colors hover:border-[var(--accent)]"
+        style={{ background: 'var(--surface)', borderColor: 'var(--border)' }}>
+        <div className="flex items-center gap-4">
+          <div className="w-10 h-10 rounded-xl flex items-center justify-center text-xl" style={{ background: 'rgba(126,200,227,0.1)' }}>🏟️</div>
+          <div>
+            <p className="font-semibold text-sm">Partidos que buscan fotógrafo</p>
+            <p className="text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>Equipos que han publicado su partido y esperan propuestas</p>
+          </div>
+        </div>
+        <span style={{ color: 'var(--accent)' }}>→</span>
+      </Link>
+
       {/* Reseñas */}
       <Link href="/dashboard/resenas"
         className="flex items-center justify-between p-5 rounded-2xl border transition-colors hover:border-[var(--accent)]"

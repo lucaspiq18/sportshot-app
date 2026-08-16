@@ -34,6 +34,19 @@ enum OfferStatus {
   withdrawn
 }
 
+enum TeamEventStatus {
+  open
+  closed
+  cancelled
+}
+
+enum BidStatus {
+  pending
+  accepted
+  rejected
+  withdrawn
+}
+
 enum BookingStatus {
   confirmed
   completed
@@ -87,6 +100,7 @@ model Photographer {
   referrals  Photographer[]     @relation("Referrals")
   slots      AvailabilitySlot[]
   bookings   Booking[]
+  bids       PhotographerBid[]
 
   @@index([city, tier, ratingAvg(sort: Desc)])
   @@map("photographers")
@@ -102,9 +116,10 @@ model Team {
   logoUrl   String?
   verified  Boolean @default(false)
 
-  user     User      @relation(fields: [userId], references: [id])
-  offers   Offer[]
-  bookings Booking[]
+  user       User        @relation(fields: [userId], references: [id])
+  offers     Offer[]
+  bookings   Booking[]
+  teamEvents TeamEvent[]
 
   @@map("teams")
 }
@@ -152,18 +167,20 @@ model Offer {
 
 model Booking {
   id             String        @id @default(uuid())
-  offerId        String        @unique
-  slotId         String
+  offerId        String?       @unique
+  bidId          String?       @unique
+  slotId         String?
   teamId         String
   photographerId String
   agreedPrice    Int
   status         BookingStatus @default(confirmed)
   createdAt      DateTime      @default(now())
 
-  offer        Offer            @relation(fields: [offerId], references: [id])
-  slot         AvailabilitySlot @relation(fields: [slotId], references: [id])
-  team         Team             @relation(fields: [teamId], references: [id])
-  photographer Photographer     @relation(fields: [photographerId], references: [id])
+  offer        Offer?            @relation(fields: [offerId], references: [id])
+  bid          PhotographerBid?  @relation(fields: [bidId], references: [id])
+  slot         AvailabilitySlot? @relation(fields: [slotId], references: [id])
+  team         Team              @relation(fields: [teamId], references: [id])
+  photographer Photographer      @relation(fields: [photographerId], references: [id])
   payment      Payment?
   delivery     Delivery?
   reviews      Review[]
@@ -171,6 +188,45 @@ model Booking {
   @@index([photographerId, status])
   @@index([teamId, status])
   @@map("bookings")
+}
+
+model TeamEvent {
+  id          String          @id @default(uuid())
+  teamId      String
+  eventName   String
+  sport       String
+  city        String
+  eventDate   DateTime
+  budget      Int
+  description String?
+  status      TeamEventStatus @default(open)
+  createdAt   DateTime        @default(now())
+  expiresAt   DateTime
+
+  team Team              @relation(fields: [teamId], references: [id])
+  bids PhotographerBid[]
+
+  @@index([city, status, eventDate])
+  @@map("team_events")
+}
+
+model PhotographerBid {
+  id             String    @id @default(uuid())
+  teamEventId    String
+  photographerId String
+  proposedPrice  Int
+  message        String?
+  status         BidStatus @default(pending)
+  createdAt      DateTime  @default(now())
+
+  teamEvent    TeamEvent    @relation(fields: [teamEventId], references: [id])
+  photographer Photographer @relation(fields: [photographerId], references: [id])
+  booking      Booking?
+
+  @@unique([teamEventId, photographerId])
+  @@index([teamEventId, status])
+  @@index([photographerId])
+  @@map("photographer_bids")
 }
 
 model Payment {
