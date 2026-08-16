@@ -60,7 +60,7 @@ async function main() {
 
   app.addHook('onRequest', async (req, reply) => {
     const publicRoutes = ['/health', ...WEBHOOK_ROUTES]
-    if (publicRoutes.includes(req.url)) return
+    if (publicRoutes.some(r => req.url === r || req.url.startsWith(r + '?'))) return
 
     const authHeader = req.headers.authorization
     if (!authHeader?.startsWith('Bearer ')) {
