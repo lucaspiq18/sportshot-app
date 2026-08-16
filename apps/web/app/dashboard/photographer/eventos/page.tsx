@@ -1,6 +1,6 @@
 import { apiServer } from '@/lib/api'
 import Link from 'next/link'
-import SpainMap from '@/components/SpainMap'
+import CityFilter from './CityFilter'
 
 type TeamEvent = {
   id: string
@@ -13,6 +13,17 @@ type TeamEvent = {
   team: { clubName: string; logoUrl: string | null }
   _count: { bids: number }
 }
+
+const PROVINCES = [
+  'A Coruña','Álava','Albacete','Alicante','Almería','Asturias','Ávila',
+  'Badajoz','Baleares','Barcelona','Bizkaia','Burgos','Cáceres','Cádiz',
+  'Cantabria','Castellón','Ceuta','Ciudad Real','Córdoba','Cuenca',
+  'Gipuzkoa','Girona','Granada','Guadalajara','Huelva','Huesca',
+  'Jaén','La Rioja','Las Palmas','León','Lleida','Lugo','Madrid',
+  'Málaga','Melilla','Murcia','Navarra','Ourense','Palencia',
+  'Pontevedra','Salamanca','S.C. Tenerife','Segovia','Sevilla','Soria',
+  'Tarragona','Teruel','Toledo','Valencia','Valladolid','Zamora','Zaragoza',
+]
 
 export default async function ExplorarEventosPage({
   searchParams,
@@ -30,19 +41,13 @@ export default async function ExplorarEventosPage({
     <div className="flex flex-col gap-6">
       <div>
         <h1 className="text-2xl font-bold mb-1">Partidos que buscan fotógrafo</h1>
-        <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
-          {city ? `Partidos en ${city}` : 'Selecciona una provincia para filtrar'}
-        </p>
+        <p className="text-sm" style={{ color: 'var(--text-muted)' }}>Equipos que han publicado su partido y esperan propuestas</p>
       </div>
 
-      {/* Mapa de España */}
-      <div className="p-4 rounded-2xl border" style={{ background: 'var(--surface)', borderColor: 'var(--border)' }}>
-        <SpainMap selected={city} />
-      </div>
+      <CityFilter provinces={PROVINCES} selected={city} />
 
-      {/* Lista de eventos */}
       {events.length === 0 ? (
-        <div className="p-8 rounded-2xl border text-center" style={{ background: 'var(--surface)', borderColor: 'var(--border)' }}>
+        <div className="p-10 rounded-2xl border text-center" style={{ background: 'var(--surface)', borderColor: 'var(--border)' }}>
           <p className="text-2xl mb-3">🏟️</p>
           <p className="font-medium mb-1">
             {city ? `No hay partidos en ${city}` : 'No hay partidos disponibles'}
