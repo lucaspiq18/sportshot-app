@@ -1,6 +1,8 @@
 import { apiServer } from '@/lib/api'
 import Link from 'next/link'
 
+export const dynamic = 'force-dynamic'
+
 type Booking = {
   id: string
   agreedPrice: number
