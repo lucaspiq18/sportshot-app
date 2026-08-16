@@ -74,9 +74,8 @@ export default function CalendarioPage() {
     startTime: '09:00',
     endTime: '13:00',
     sports: [] as string[],
-    provincias: [] as string[],
+    provincia: '',
     price: '',
-    provinciaSearch: '',
   })
 
   const fetchFranjas = useCallback(async () => {
@@ -98,7 +97,7 @@ export default function CalendarioPage() {
     const y = day.getFullYear()
     const m = String(day.getMonth() + 1).padStart(2, '0')
     const d = String(day.getDate()).padStart(2, '0')
-    setForm({ date: `${y}-${m}-${d}`, startTime: '09:00', endTime: '13:00', sports: [], provincias: [], price: '', provinciaSearch: '' })
+    setForm({ date: `${y}-${m}-${d}`, startTime: '09:00', endTime: '13:00', sports: [], provincia: '', price: '' })
     setSelectedFranja(null)
     setShowForm(true)
     setError('')
@@ -112,7 +111,7 @@ export default function CalendarioPage() {
 
   async function handleCreate(e: React.FormEvent) {
     e.preventDefault()
-    if (!form.date || form.sports.length === 0 || !form.price || form.provincias.length === 0) {
+    if (!form.date || form.sports.length === 0 || !form.price || !form.provincia) {
       setError('Completa todos los campos')
       return
     }
@@ -124,7 +123,6 @@ export default function CalendarioPage() {
     try {
       const token = await getToken()
       if (!token) throw new Error('No auth')
-      // city field keeps backward compat — send joined provincias
       await apiClient('/slots', token, {
         method: 'POST',
         body: JSON.stringify({
@@ -132,7 +130,7 @@ export default function CalendarioPage() {
           endsAt: endsAt.toISOString(),
           sports: form.sports,
           price: Math.round(Number(form.price) * 100),
-          city: form.provincias.join(', '),
+          city: form.provincia,
         }),
       })
       setShowForm(false)
@@ -162,14 +160,6 @@ export default function CalendarioPage() {
   function toggleSport(sport: string) {
     setForm(f => ({ ...f, sports: f.sports.includes(sport) ? f.sports.filter(s => s !== sport) : [...f.sports, sport] }))
   }
-
-  function toggleProvincia(prov: string) {
-    setForm(f => ({ ...f, provincias: f.provincias.includes(prov) ? f.provincias.filter(p => p !== prov) : [...f.provincias, prov] }))
-  }
-
-  const filteredProvincias = PROVINCIAS.filter(p =>
-    p.toLowerCase().includes(form.provinciaSearch.toLowerCase())
-  )
 
   const weeks: Date[][] = []
   for (let i = 0; i < 28; i += 7) weeks.push(days.slice(i, i + 7))
@@ -271,12 +261,8 @@ export default function CalendarioPage() {
                     <p className="font-medium text-sm">{fmtTime(new Date(selectedFranja.endsAt))}</p>
                   </div>
                   <div>
-                    <p className="text-xs mb-0.5" style={{ color: 'var(--text-muted)' }}>Provincias</p>
-                    <div className="flex flex-wrap gap-1 mt-1">
-                      {selectedFranja.city.split(', ').map(p => (
-                        <span key={p} className="px-2 py-0.5 rounded-full text-xs" style={{ background: 'var(--surface)', color: 'var(--text)' }}>{p}</span>
-                      ))}
-                    </div>
+                    <p className="text-xs mb-0.5" style={{ color: 'var(--text-muted)' }}>Provincia</p>
+                    <p className="text-sm font-medium">{selectedFranja.city}</p>
                   </div>
                   <div>
                     <p className="text-xs mb-0.5" style={{ color: 'var(--text-muted)' }}>Deportes</p>
@@ -335,44 +321,19 @@ export default function CalendarioPage() {
                     </div>
                   </div>
 
-                  {/* Provincias */}
+                  {/* Provincia */}
                   <div>
-                    <label className="block text-xs font-medium mb-1.5" style={{ color: 'var(--text-muted)' }}>
-                      Provincias donde puedes desplazarte
-                      {form.provincias.length > 0 && <span className="ml-1.5" style={{ color: 'var(--accent)' }}>({form.provincias.length} seleccionadas)</span>}
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="Buscar provincia…"
-                      value={form.provinciaSearch}
-                      onChange={e => setForm(f => ({ ...f, provinciaSearch: e.target.value }))}
-                      className="w-full px-3 py-2 rounded-lg border text-sm outline-none mb-2"
+                    <label className="block text-xs font-medium mb-1.5" style={{ color: 'var(--text-muted)' }}>Provincia</label>
+                    <select
+                      required
+                      value={form.provincia}
+                      onChange={e => setForm(f => ({ ...f, provincia: e.target.value }))}
+                      className="w-full px-4 py-2.5 rounded-xl border text-sm outline-none"
                       style={{ background: 'var(--bg)', borderColor: 'var(--border)', color: 'var(--text)' }}
-                    />
-                    {form.provincias.length > 0 && (
-                      <div className="flex flex-wrap gap-1.5 mb-2">
-                        {form.provincias.map(p => (
-                          <span key={p} className="flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium" style={{ background: 'var(--accent)', color: '#0a0f14' }}>
-                            {p}
-                            <button type="button" onClick={() => toggleProvincia(p)} className="opacity-70 hover:opacity-100 leading-none">×</button>
-                          </span>
-                        ))}
-                      </div>
-                    )}
-                    <div className="max-h-36 overflow-y-auto rounded-xl border flex flex-col" style={{ borderColor: 'var(--border)', background: 'var(--bg)' }}>
-                      {filteredProvincias.map(prov => (
-                        <button
-                          key={prov}
-                          type="button"
-                          onClick={() => toggleProvincia(prov)}
-                          className="flex items-center justify-between px-3 py-2 text-sm text-left hover:opacity-80 border-b last:border-b-0"
-                          style={{ borderColor: 'var(--border)', color: form.provincias.includes(prov) ? 'var(--accent)' : 'var(--text)' }}
-                        >
-                          {prov}
-                          {form.provincias.includes(prov) && <span className="text-xs">✓</span>}
-                        </button>
-                      ))}
-                    </div>
+                    >
+                      <option value="">Selecciona provincia</option>
+                      {PROVINCIAS.map(p => <option key={p} value={p}>{p}</option>)}
+                    </select>
                   </div>
 
                   {/* Deportes */}

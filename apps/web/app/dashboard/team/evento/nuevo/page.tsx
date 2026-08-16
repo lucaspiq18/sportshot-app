@@ -5,6 +5,17 @@ import { useRouter } from 'next/navigation'
 import { useAuth } from '@clerk/nextjs'
 import { apiClient } from '@/lib/api-client'
 
+const PROVINCES = [
+  'A Coruña','Álava','Albacete','Alicante','Almería','Asturias','Ávila',
+  'Badajoz','Baleares','Barcelona','Bizkaia','Burgos','Cáceres','Cádiz',
+  'Cantabria','Castellón','Ceuta','Ciudad Real','Córdoba','Cuenca',
+  'Gipuzkoa','Girona','Granada','Guadalajara','Huelva','Huesca',
+  'Jaén','La Rioja','Las Palmas','León','Lleida','Lugo','Madrid',
+  'Málaga','Melilla','Murcia','Navarra','Ourense','Palencia',
+  'Pontevedra','Salamanca','S.C. Tenerife','Segovia','Sevilla','Soria',
+  'Tarragona','Teruel','Toledo','Valencia','Valladolid','Zamora','Zaragoza',
+]
+
 export default function NuevoEventoPage() {
   const { getToken } = useAuth()
   const router = useRouter()
@@ -73,13 +84,16 @@ export default function NuevoEventoPage() {
             />
           </div>
           <div>
-            <label className="text-xs mb-1.5 block" style={{ color: 'var(--text-muted)' }}>Ciudad</label>
-            <input
-              required placeholder="Madrid"
+            <label className="text-xs mb-1.5 block" style={{ color: 'var(--text-muted)' }}>Provincia</label>
+            <select
+              required
               value={form.city}
               onChange={e => setForm(f => ({ ...f, city: e.target.value }))}
               className={inputClass} style={inputStyle}
-            />
+            >
+              <option value="">Selecciona provincia</option>
+              {PROVINCES.map(p => <option key={p} value={p}>{p}</option>)}
+            </select>
           </div>
         </div>
 
