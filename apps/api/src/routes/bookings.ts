@@ -35,25 +35,30 @@ export async function bookingsRoutes(app: FastifyInstance) {
     const { id } = req.params as { id: string }
     const { teamId, photographerId, userId } = req.user
 
-    const booking = await prisma.booking.findUnique({
-      where: { id },
-      include: {
-        offer: { select: { eventName: true } },
-        bid: { include: { teamEvent: { select: { eventName: true, eventDate: true, city: true, sport: true } } } },
-        slot: { select: { startsAt: true, endsAt: true, city: true, sports: true } },
-        team: { select: { clubName: true, user: { select: { fullName: true } } } },
-        photographer: { select: { user: { select: { fullName: true, id: true } } } },
-        delivery: { select: { deliveredAt: true, approvedAt: true, photoCount: true } },
-        payment: { select: { amount: true } },
-      },
-    })
+    try {
+      const booking = await prisma.booking.findUnique({
+        where: { id },
+        include: {
+          offer: { select: { eventName: true } },
+          bid: { include: { teamEvent: { select: { eventName: true, eventDate: true, city: true, sport: true } } } },
+          slot: { select: { startsAt: true, endsAt: true, city: true, sports: true } },
+          team: { select: { clubName: true } },
+          photographer: { select: { userId: true, user: { select: { fullName: true } } } },
+          delivery: { select: { deliveredAt: true, approvedAt: true, photoCount: true } },
+          payment: { select: { amount: true } },
+        },
+      })
 
-    if (!booking) return reply.status(404).send({ data: null, error: { code: 'NOT_FOUND', message: '' } })
-    if (booking.teamId !== teamId && booking.photographerId !== photographerId) {
-      return reply.status(403).send({ data: null, error: { code: 'FORBIDDEN', message: '' } })
+      if (!booking) return reply.status(404).send({ data: null, error: { code: 'NOT_FOUND', message: '' } })
+      if (booking.teamId !== teamId && booking.photographerId !== photographerId) {
+        return reply.status(403).send({ data: null, error: { code: 'FORBIDDEN', message: '' } })
+      }
+
+      return { data: { ...booking, currentUserId: userId }, error: null }
+    } catch (e: any) {
+      app.log.error(e)
+      return reply.status(500).send({ data: null, error: { code: 'INTERNAL', message: e?.message ?? 'Error interno' } })
     }
-
-    return { data: { ...booking, currentUserId: userId }, error: null }
   })
 
   // GET /bookings/:id/messages

@@ -15,7 +15,11 @@ export async function apiServer<T>(path: string, options?: RequestInit): Promise
     },
   })
 
-  if (!res.ok) throw new Error(`API error ${res.status}`)
+  if (!res.ok) {
+    let msg = `API error ${res.status}`
+    try { const j = await res.json(); msg = j?.error?.message || msg } catch {}
+    throw new Error(msg)
+  }
   const json = await res.json()
   return json.data
 }
