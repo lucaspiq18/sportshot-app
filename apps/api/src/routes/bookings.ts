@@ -20,7 +20,7 @@ export async function bookingsRoutes(app: FastifyInstance) {
       where,
       include: {
         offer: { select: { eventName: true, eventDate: true } },
-        bid: { include: { teamEvent: { select: { eventName: true, eventDate: true, city: true, localidad: true } } } },
+        bid: { include: { teamEvent: { select: { eventName: true, eventDate: true, city: true } } } },
         team: { select: { clubName: true } },
         photographer: { select: { user: { select: { fullName: true } } } },
         _count: { select: { messages: true } },
@@ -40,8 +40,8 @@ export async function bookingsRoutes(app: FastifyInstance) {
       where: { id },
       include: {
         offer: { select: { eventName: true, eventDate: true } },
-        bid: { include: { teamEvent: { select: { eventName: true, eventDate: true, city: true, localidad: true, sport: true } } } },
-        slot: { select: { startsAt: true, endsAt: true, city: true, localidad: true, sports: true } },
+        bid: { include: { teamEvent: { select: { eventName: true, eventDate: true, city: true, sport: true } } } },
+        slot: { select: { startsAt: true, endsAt: true, city: true, sports: true } },
         team: { select: { clubName: true, user: { select: { fullName: true } } } },
         photographer: { select: { user: { select: { fullName: true, id: true } } } },
         delivery: { select: { status: true, photoUrls: true } },

@@ -7,7 +7,7 @@ type Booking = {
   status: string
   createdAt: string
   offer: { eventName: string; eventDate: string } | null
-  bid: { teamEvent: { eventName: string; eventDate: string; city: string; localidad: string | null } } | null
+  bid: { teamEvent: { eventName: string; eventDate: string; city: string } } | null
   team: { clubName: string }
   photographer: { user: { fullName: string } }
   _count: { messages: number }
@@ -40,9 +40,7 @@ function eventDate(b: Booking) {
 }
 
 function location(b: Booking) {
-  const te = b.bid?.teamEvent
-  if (!te) return null
-  return te.localidad ? `${te.localidad}, ${te.city}` : te.city
+  return b.bid?.teamEvent.city ?? null
 }
 
 export default async function AcuerdosPage() {

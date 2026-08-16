@@ -19,8 +19,8 @@ type Booking = {
   createdAt: string
   currentUserId: string
   offer: { eventName: string; eventDate: string } | null
-  bid: { teamEvent: { eventName: string; eventDate: string; city: string; localidad: string | null; sport: string } } | null
-  slot: { startsAt: string; city: string; localidad: string | null; sports: string[] } | null
+  bid: { teamEvent: { eventName: string; eventDate: string; city: string; sport: string } } | null
+  slot: { startsAt: string; city: string; sports: string[] } | null
   team: { clubName: string; user: { fullName: string } }
   photographer: { user: { fullName: string; id: string } }
   delivery: { status: string; photoUrls: string[] } | null
@@ -128,15 +128,7 @@ export default function AcuerdoDetailPage() {
   const sc = STATUS_COLOR[booking.status] ?? STATUS_COLOR.confirmed
   const eventName = booking.offer?.eventName ?? booking.bid?.teamEvent.eventName ?? 'Acuerdo'
   const eventDate = booking.offer?.eventDate ?? booking.bid?.teamEvent.eventDate
-  const locationStr = booking.bid?.teamEvent
-    ? booking.bid.teamEvent.localidad
-      ? `${booking.bid.teamEvent.localidad}, ${booking.bid.teamEvent.city}`
-      : booking.bid.teamEvent.city
-    : booking.slot
-    ? booking.slot.localidad
-      ? `${booking.slot.localidad}, ${booking.slot.city}`
-      : booking.slot.city
-    : null
+  const locationStr = booking.bid?.teamEvent.city ?? booking.slot?.city ?? null
 
   return (
     <div className="max-w-2xl mx-auto flex flex-col gap-6">
