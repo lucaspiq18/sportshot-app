@@ -57,6 +57,7 @@ export default function AcuerdoDetailPage() {
   const [text, setText] = useState('')
   const [sending, setSending] = useState(false)
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
   const bottomRef = useRef<HTMLDivElement>(null)
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
@@ -78,8 +79,8 @@ export default function AcuerdoDetailPage() {
         setBooking(data)
         const msgs = await apiClient<Message[]>(`/bookings/${bookingId}/messages`, token)
         setMessages(msgs)
-      } catch {
-        router.push('/dashboard/acuerdos')
+      } catch (e: any) {
+        setError(e?.message ?? 'Error al cargar el acuerdo')
       } finally {
         setLoading(false)
       }
@@ -123,7 +124,17 @@ export default function AcuerdoDetailPage() {
       </div>
     )
   }
-  if (!booking) return null
+  if (error || !booking) {
+    return (
+      <div className="max-w-2xl mx-auto flex flex-col gap-4">
+        <button onClick={() => router.back()} className="text-xs flex items-center gap-1 self-start" style={{ color: 'var(--text-muted)' }}>← Volver</button>
+        <div className="p-6 rounded-2xl border text-center" style={{ background: 'var(--surface)', borderColor: 'var(--border)' }}>
+          <p className="font-medium mb-1">No se pudo cargar el acuerdo</p>
+          <p className="text-sm" style={{ color: 'var(--text-muted)' }}>{error}</p>
+        </div>
+      </div>
+    )
+  }
 
   const sc = STATUS_COLOR[booking.status] ?? STATUS_COLOR.confirmed
   const eventName = booking.offer?.eventName ?? booking.bid?.teamEvent.eventName ?? 'Acuerdo'
