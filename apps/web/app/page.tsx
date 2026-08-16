@@ -8,118 +8,198 @@ export default async function Home() {
   if (userId) redirect('/dashboard')
 
   return (
-    <main className="min-h-screen flex flex-col" style={{ background: 'var(--bg)' }}>
+    <main className="min-h-screen flex flex-col" style={{ background: '#0a0f14', color: '#e8edf2' }}>
+      <style>{`
+        @keyframes glow-pulse {
+          0%, 100% { opacity: 0.5; }
+          50% { opacity: 0.85; }
+        }
+        @keyframes fade-up {
+          from { opacity: 0; transform: translateY(24px); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
+        .hero-badge { animation: fade-up 0.6s ease both; }
+        .hero-h1    { animation: fade-up 0.6s 0.1s ease both; }
+        .hero-sub   { animation: fade-up 0.6s 0.2s ease both; }
+        .hero-cta   { animation: fade-up 0.6s 0.3s ease both; }
+        .glow       { animation: glow-pulse 4s ease-in-out infinite; }
+        .grad-border {
+          background: linear-gradient(#0f1921, #0f1921) padding-box,
+                      linear-gradient(135deg, #7ec8e3 0%, #1e2d3d 60%) border-box;
+          border: 1px solid transparent;
+        }
+        .grad-border-amber {
+          background: linear-gradient(#0f1921, #0f1921) padding-box,
+                      linear-gradient(135deg, #f4a853 0%, #1e2d3d 60%) border-box;
+          border: 1px solid transparent;
+        }
+        .step-line::before {
+          content: '';
+          position: absolute;
+          left: 19px; top: 40px; bottom: -24px;
+          width: 1px;
+          background: linear-gradient(to bottom, #1e2d3d, transparent);
+        }
+      `}</style>
 
       {/* Nav */}
-      <nav className="sticky top-0 z-50 flex items-center justify-between px-8 py-4 border-b backdrop-blur-sm" style={{ borderColor: 'var(--border)', background: 'rgba(10,15,20,0.85)' }}>
-        <div className="flex items-center gap-2">
-          <Logo height={28} />
-        </div>
-        <div className="hidden md:flex items-center gap-6 text-sm" style={{ color: 'var(--text-muted)' }}>
-          <Link href="/como-funciona" className="hover:opacity-80 transition-opacity">Cómo funciona</Link>
-          <Link href="/pricing" className="hover:opacity-80 transition-opacity">Precios</Link>
-          <Link href="/faq" className="hover:opacity-80 transition-opacity">FAQ</Link>
-          <Link href="/contacto" className="hover:opacity-80 transition-opacity">Contacto</Link>
+      <nav className="sticky top-0 z-50 flex items-center justify-between px-8 py-4 border-b backdrop-blur-md"
+        style={{ borderColor: '#1e2d3d', background: 'rgba(10,15,20,0.9)' }}>
+        <Logo height={28} />
+        <div className="hidden md:flex items-center gap-6 text-sm" style={{ color: '#4a6070' }}>
+          <Link href="/como-funciona" className="hover:text-[#e8edf2] transition-colors">Cómo funciona</Link>
+          <Link href="/pricing" className="hover:text-[#e8edf2] transition-colors">Precios</Link>
+          <Link href="/faq" className="hover:text-[#e8edf2] transition-colors">FAQ</Link>
+          <Link href="/contacto" className="hover:text-[#e8edf2] transition-colors">Contacto</Link>
         </div>
         <div className="flex gap-3">
-          <Link href="/sign-in" className="px-4 py-2 rounded-lg text-sm font-medium transition-opacity hover:opacity-70" style={{ color: 'var(--text-muted)' }}>
-            Iniciar sesión
+          <Link href="/sign-in"
+            className="px-4 py-2 rounded-lg text-sm font-medium transition-colors hover:text-[#e8edf2]"
+            style={{ color: '#4a6070' }}>
+            Entrar
           </Link>
-          <Link href="/sign-up" className="px-4 py-2 rounded-lg text-sm font-semibold transition-opacity hover:opacity-90" style={{ background: 'var(--accent)', color: '#0a0f14' }}>
+          <Link href="/sign-up"
+            className="px-4 py-2 rounded-lg text-sm font-semibold"
+            style={{ background: '#7ec8e3', color: '#0a0f14' }}>
             Registrarse
           </Link>
         </div>
       </nav>
 
-      {/* Hero */}
-      <section className="flex flex-col items-center justify-center text-center px-6 pt-28 pb-20">
-        <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium mb-8 border" style={{ borderColor: 'var(--border)', background: 'var(--surface)', color: 'var(--accent)' }}>
-          <span className="w-1.5 h-1.5 rounded-full" style={{ background: 'var(--accent)' }} />
-          Marketplace de fotografía deportiva
+      {/* ── HERO ── */}
+      <section className="relative flex flex-col items-center justify-center text-center px-6 pt-28 pb-24 overflow-hidden">
+        {/* Glow radial */}
+        <div className="glow absolute inset-0 pointer-events-none" style={{
+          background: 'radial-gradient(ellipse 70% 50% at 50% 0%, rgba(126,200,227,0.12) 0%, transparent 70%)',
+        }} />
+        {/* Grid texture */}
+        <div className="absolute inset-0 pointer-events-none" style={{
+          backgroundImage: 'linear-gradient(rgba(126,200,227,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(126,200,227,0.03) 1px, transparent 1px)',
+          backgroundSize: '40px 40px',
+        }} />
+
+        <div className="relative z-10 flex flex-col items-center">
+          <div className="hero-badge inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium mb-8 border"
+            style={{ borderColor: '#1e2d3d', background: 'rgba(126,200,227,0.06)', color: '#7ec8e3' }}>
+            <span className="w-1.5 h-1.5 rounded-full" style={{ background: '#7ec8e3' }} />
+            Marketplace de fotografía deportiva · España
+          </div>
+
+          <h1 className="hero-h1 font-black tracking-tight mb-6 leading-none"
+            style={{ fontSize: 'clamp(2.8rem, 7vw, 5.5rem)', letterSpacing: '-0.04em', maxWidth: 820 }}>
+            El partido merece<br />
+            <span style={{ color: '#7ec8e3' }}>ser recordado.</span>
+          </h1>
+
+          <p className="hero-sub text-lg mb-10 max-w-xl leading-relaxed" style={{ color: '#4a6070' }}>
+            FokuSport conecta equipos deportivos con fotógrafos profesionales. Publica tu partido, recibe propuestas y paga solo cuando tienes las fotos.
+          </p>
+
+          <div className="hero-cta flex flex-col sm:flex-row gap-3 mb-5">
+            <Link href="/sign-up?role=team"
+              className="px-7 py-3.5 rounded-xl font-bold text-sm"
+              style={{ background: '#7ec8e3', color: '#0a0f14' }}>
+              Soy un equipo →
+            </Link>
+            <Link href="/sign-up?role=photographer"
+              className="px-7 py-3.5 rounded-xl font-bold text-sm border"
+              style={{ borderColor: '#1e2d3d', color: '#e8edf2', background: '#0f1921' }}>
+              Soy fotógrafo →
+            </Link>
+          </div>
+          <p className="text-xs" style={{ color: '#2a4050' }}>Sin comisiones ocultas · Pago seguro vía Stripe · Fotos garantizadas</p>
         </div>
-        <h1 className="text-5xl md:text-6xl font-bold tracking-tight mb-6 max-w-3xl leading-tight">
-          Fotógrafos deportivos,<br />
-          <span style={{ color: 'var(--accent)' }}>cuando los necesitas</span>
-        </h1>
-        <p className="text-lg mb-10 max-w-lg leading-relaxed" style={{ color: 'var(--text-muted)' }}>
-          Conecta tu equipo con fotógrafos profesionales para cada evento. Reserva, paga de forma segura y recibe tus fotos en 48h.
-        </p>
-        <div className="flex flex-col sm:flex-row gap-3">
-          <Link href="/sign-up" className="px-6 py-3 rounded-xl font-semibold text-sm transition-opacity hover:opacity-90" style={{ background: 'var(--accent)', color: '#0a0f14' }}>
-            Empieza gratis →
-          </Link>
-          <Link href="#como-funciona" className="px-6 py-3 rounded-xl font-semibold text-sm border transition-colors hover:opacity-80" style={{ borderColor: 'var(--border)', color: 'var(--text-muted)' }}>
-            Ver cómo funciona
-          </Link>
-        </div>
-        <p className="mt-4 text-xs" style={{ color: 'var(--text-muted)' }}>Sin comisiones ocultas · Pago seguro · Fotos garantizadas</p>
       </section>
 
-      {/* Stats */}
-      <section className="py-12 border-y mx-8 md:mx-16" style={{ borderColor: 'var(--border)' }}>
-        <div className="grid grid-cols-3 gap-8 max-w-2xl mx-auto text-center">
+      {/* ── STATS ── */}
+      <section className="border-y py-10" style={{ borderColor: '#1e2d3d', background: '#0f1921' }}>
+        <div className="max-w-3xl mx-auto grid grid-cols-3 gap-8 text-center px-6">
           {[
             { value: '48h', label: 'Entrega de fotos' },
             { value: '90%', label: 'Para el fotógrafo' },
-            { value: '100%', label: 'Pago garantizado' },
-          ].map((s) => (
+            { value: '100%', label: 'Pago protegido' },
+          ].map(s => (
             <div key={s.label}>
-              <p className="text-3xl font-bold mb-1" style={{ color: 'var(--accent)' }}>{s.value}</p>
-              <p className="text-xs" style={{ color: 'var(--text-muted)' }}>{s.label}</p>
+              <p className="font-black mb-1" style={{ fontSize: '2.2rem', color: '#7ec8e3', letterSpacing: '-0.04em' }}>{s.value}</p>
+              <p className="text-xs" style={{ color: '#4a6070' }}>{s.label}</p>
             </div>
           ))}
         </div>
       </section>
 
-      {/* Cómo funciona */}
-      <section id="como-funciona" className="py-24 px-8 max-w-5xl mx-auto w-full">
-        <h2 className="text-3xl font-bold text-center mb-4">Cómo funciona</h2>
-        <p className="text-center mb-16 text-sm" style={{ color: 'var(--text-muted)' }}>Tres pasos para tener al fotógrafo perfecto en tu evento</p>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {[
-            { step: '01', title: 'Explora y elige', desc: 'Busca fotógrafos disponibles en tu ciudad y deporte. Filtra por fecha, precio y especialidad.' },
-            { step: '02', title: 'Haz tu oferta', desc: 'Propón tu presupuesto y descripción del evento. El fotógrafo acepta o propone cambios.' },
-            { step: '03', title: 'Recibe tus fotos', desc: 'El pago se libera cuando recibes las fotos. Garantía total para ambas partes.' },
-          ].map((item) => (
-            <div key={item.step} className="flex flex-col gap-4">
-              <span className="text-4xl font-bold" style={{ color: 'var(--border)' }}>{item.step}</span>
-              <h3 className="font-semibold text-lg">{item.title}</h3>
-              <p className="text-sm leading-relaxed" style={{ color: 'var(--text-muted)' }}>{item.desc}</p>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* Para quién */}
-      <section id="para-quien" className="py-24 px-8" style={{ background: 'var(--surface)' }}>
+      {/* ── DOS FLUJOS ── */}
+      <section className="py-24 px-6">
         <div className="max-w-5xl mx-auto">
-          <h2 className="text-3xl font-bold text-center mb-16">¿Para quién es FokuSport?</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <div className="p-8 rounded-2xl border" style={{ background: 'var(--bg)', borderColor: 'var(--border)' }}>
-              <div className="w-10 h-10 rounded-xl flex items-center justify-center text-lg mb-6" style={{ background: 'rgba(126,200,227,0.1)' }}>⚽</div>
-              <h3 className="text-xl font-bold mb-3">Equipos y clubes</h3>
-              <ul className="flex flex-col gap-2 text-sm mb-8" style={{ color: 'var(--text-muted)' }}>
-                {['Encuentra fotógrafos en tu ciudad', 'Compara precios y portfolios', 'Paga solo cuando recibes las fotos', 'Descarga todas las imágenes en alta resolución'].map(i => (
-                  <li key={i} className="flex items-center gap-2">
-                    <span style={{ color: 'var(--accent)' }}>✓</span> {i}
+          <p className="text-xs font-semibold tracking-widest text-center mb-3" style={{ color: '#7ec8e3' }}>DOS FORMAS DE TRABAJAR</p>
+          <h2 className="font-black text-center mb-16" style={{ fontSize: 'clamp(1.8rem,4vw,2.8rem)', letterSpacing: '-0.03em' }}>
+            Tú decides cómo conectar
+          </h2>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Flujo 1: Equipo busca fotógrafo */}
+            <div className="grad-border-amber rounded-2xl p-8 flex flex-col gap-6" style={{ background: '#0f1921' }}>
+              <div>
+                <span className="text-xs font-semibold tracking-widest" style={{ color: '#f4a853' }}>EQUIPOS</span>
+                <h3 className="font-black mt-2 mb-1" style={{ fontSize: '1.4rem', letterSpacing: '-0.02em' }}>
+                  Publica tu partido
+                </h3>
+                <p className="text-sm" style={{ color: '#4a6070' }}>
+                  Dí cuándo y dónde juegas. Los fotógrafos de tu zona te envían su propuesta con precio.
+                </p>
+              </div>
+              <ol className="flex flex-col gap-4">
+                {[
+                  'Publica el partido con tu presupuesto',
+                  'Recibe propuestas de fotógrafos',
+                  'Elige el que más te convence',
+                  'Paga al recibir las fotos',
+                ].map((step, i) => (
+                  <li key={i} className="flex items-start gap-3">
+                    <span className="flex-shrink-0 w-6 h-6 rounded-full text-xs font-bold flex items-center justify-center mt-0.5"
+                      style={{ background: 'rgba(244,168,83,0.12)', color: '#f4a853' }}>
+                      {i + 1}
+                    </span>
+                    <span className="text-sm" style={{ color: '#8aa0b0' }}>{step}</span>
                   </li>
                 ))}
-              </ul>
-              <Link href="/sign-up" className="inline-flex px-5 py-2.5 rounded-xl text-sm font-semibold" style={{ background: 'var(--accent)', color: '#0a0f14' }}>
+              </ol>
+              <Link href="/sign-up"
+                className="mt-auto inline-flex items-center justify-center py-3 rounded-xl text-sm font-bold"
+                style={{ background: 'rgba(244,168,83,0.1)', color: '#f4a853', border: '1px solid rgba(244,168,83,0.2)' }}>
                 Registrar mi equipo →
               </Link>
             </div>
-            <div className="p-8 rounded-2xl border" style={{ background: 'var(--bg)', borderColor: 'var(--border)' }}>
-              <div className="w-10 h-10 rounded-xl flex items-center justify-center text-lg mb-6" style={{ background: 'rgba(126,200,227,0.1)' }}>📷</div>
-              <h3 className="text-xl font-bold mb-3">Fotógrafos deportivos</h3>
-              <ul className="flex flex-col gap-2 text-sm mb-8" style={{ color: 'var(--text-muted)' }}>
-                {['Publica tu disponibilidad en minutos', 'Recibe ofertas de equipos locales', 'Cobra de forma segura y garantizada', 'Construye tu portfolio deportivo'].map(i => (
-                  <li key={i} className="flex items-center gap-2">
-                    <span style={{ color: 'var(--accent)' }}>✓</span> {i}
+
+            {/* Flujo 2: Fotógrafo publica disponibilidad */}
+            <div className="grad-border rounded-2xl p-8 flex flex-col gap-6" style={{ background: '#0f1921' }}>
+              <div>
+                <span className="text-xs font-semibold tracking-widest" style={{ color: '#7ec8e3' }}>FOTÓGRAFOS</span>
+                <h3 className="font-black mt-2 mb-1" style={{ fontSize: '1.4rem', letterSpacing: '-0.02em' }}>
+                  Publica tu disponibilidad
+                </h3>
+                <p className="text-sm" style={{ color: '#4a6070' }}>
+                  Abre tu agenda. Los equipos de tu zona te hacen ofertas para cubrir sus partidos.
+                </p>
+              </div>
+              <ol className="flex flex-col gap-4">
+                {[
+                  'Publica tu disponibilidad con precio',
+                  'Los equipos te hacen ofertas',
+                  'Acepta la que más te interese',
+                  'Cobra al entregar las fotos',
+                ].map((step, i) => (
+                  <li key={i} className="flex items-start gap-3">
+                    <span className="flex-shrink-0 w-6 h-6 rounded-full text-xs font-bold flex items-center justify-center mt-0.5"
+                      style={{ background: 'rgba(126,200,227,0.1)', color: '#7ec8e3' }}>
+                      {i + 1}
+                    </span>
+                    <span className="text-sm" style={{ color: '#8aa0b0' }}>{step}</span>
                   </li>
                 ))}
-              </ul>
-              <Link href="/sign-up" className="inline-flex px-5 py-2.5 rounded-xl text-sm font-semibold border" style={{ borderColor: 'var(--accent)', color: 'var(--accent)' }}>
+              </ol>
+              <Link href="/sign-up"
+                className="mt-auto inline-flex items-center justify-center py-3 rounded-xl text-sm font-bold"
+                style={{ background: 'rgba(126,200,227,0.08)', color: '#7ec8e3', border: '1px solid rgba(126,200,227,0.2)' }}>
                 Unirme como fotógrafo →
               </Link>
             </div>
@@ -127,30 +207,72 @@ export default async function Home() {
         </div>
       </section>
 
-      {/* CTA final */}
-      <section className="py-24 px-8 text-center">
-        <div className="max-w-2xl mx-auto">
-          <h2 className="text-4xl font-bold mb-6">Listo para empezar</h2>
-          <p className="mb-10 text-lg" style={{ color: 'var(--text-muted)' }}>Únete gratis y conecta con fotógrafos o equipos deportivos en tu zona.</p>
-          <Link href="/sign-up" className="inline-flex px-8 py-4 rounded-xl font-semibold text-base transition-opacity hover:opacity-90" style={{ background: 'var(--accent)', color: '#0a0f14' }}>
-            Crear cuenta gratis →
-          </Link>
+      {/* ── POR QUÉ FOKUSPORT ── */}
+      <section className="py-24 px-6 border-t" style={{ borderColor: '#1e2d3d', background: '#0a0f14' }}>
+        <div className="max-w-5xl mx-auto">
+          <p className="text-xs font-semibold tracking-widest text-center mb-3" style={{ color: '#7ec8e3' }}>GARANTÍAS</p>
+          <h2 className="font-black text-center mb-16" style={{ fontSize: 'clamp(1.8rem,4vw,2.8rem)', letterSpacing: '-0.03em' }}>
+            Sin sorpresas, para nadie
+          </h2>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {[
+              { icon: '🔒', title: 'Pago en escrow', desc: 'El dinero queda retenido hasta que el equipo aprueba las fotos. Nadie pierde.' },
+              { icon: '⚡', title: '48h de entrega', desc: 'Los fotógrafos se comprometen a entregar en 48 horas tras el evento.' },
+              { icon: '💬', title: 'Acuerdo antes de empezar', desc: 'Precio, entregables y uso de las fotos queda pactado antes del disparo.' },
+              { icon: '📸', title: 'Fotógrafos verificados', desc: 'Cada fotógrafo pasa por un proceso de verificación antes de publicar.' },
+              { icon: '🏆', title: 'Para cualquier deporte', desc: 'Fútbol, baloncesto, atletismo, natación… cualquier deporte tiene cabida.' },
+              { icon: '📍', title: 'Tu ciudad, tu fotógrafo', desc: 'Conectamos por proximidad para reducir costes de desplazamiento.' },
+            ].map(f => (
+              <div key={f.title} className="p-6 rounded-2xl border" style={{ background: '#0f1921', borderColor: '#1e2d3d' }}>
+                <span className="text-2xl mb-4 block">{f.icon}</span>
+                <h3 className="font-bold text-sm mb-2">{f.title}</h3>
+                <p className="text-xs leading-relaxed" style={{ color: '#4a6070' }}>{f.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── CTA FINAL ── */}
+      <section className="relative py-28 px-6 overflow-hidden border-t" style={{ borderColor: '#1e2d3d' }}>
+        <div className="glow absolute inset-0 pointer-events-none" style={{
+          background: 'radial-gradient(ellipse 60% 60% at 50% 100%, rgba(126,200,227,0.1) 0%, transparent 70%)',
+        }} />
+        <div className="relative z-10 max-w-2xl mx-auto text-center">
+          <h2 className="font-black mb-5" style={{ fontSize: 'clamp(2rem,5vw,3.5rem)', letterSpacing: '-0.04em' }}>
+            El próximo partido<br />merece buenas fotos.
+          </h2>
+          <p className="mb-10 text-lg" style={{ color: '#4a6070' }}>
+            Únete gratis. Sin cuotas mensuales, sin compromisos.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+            <Link href="/sign-up"
+              className="px-8 py-4 rounded-xl font-bold text-base"
+              style={{ background: '#7ec8e3', color: '#0a0f14' }}>
+              Crear cuenta gratis →
+            </Link>
+            <Link href="/como-funciona"
+              className="px-8 py-4 rounded-xl font-bold text-base border"
+              style={{ borderColor: '#1e2d3d', color: '#4a6070' }}>
+              Ver cómo funciona
+            </Link>
+          </div>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="border-t px-8 py-10" style={{ borderColor: 'var(--border)' }}>
+      <footer className="border-t px-8 py-10" style={{ borderColor: '#1e2d3d' }}>
         <div className="max-w-5xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
           <Logo height={22} />
-          <p className="text-xs" style={{ color: 'var(--text-muted)' }}>© 2026 FokuSport. Todos los derechos reservados.</p>
-          <div className="flex gap-6 text-xs" style={{ color: 'var(--text-muted)' }}>
-            <Link href="#" className="hover:opacity-80">Privacidad</Link>
-            <Link href="#" className="hover:opacity-80">Términos</Link>
-            <Link href="/contacto" className="hover:opacity-80">Contacto</Link>
+          <p className="text-xs" style={{ color: '#2a4050' }}>© 2026 FokuSport. Todos los derechos reservados.</p>
+          <div className="flex gap-6 text-xs" style={{ color: '#2a4050' }}>
+            <Link href="#" className="hover:text-[#4a6070] transition-colors">Privacidad</Link>
+            <Link href="#" className="hover:text-[#4a6070] transition-colors">Términos</Link>
+            <Link href="/contacto" className="hover:text-[#4a6070] transition-colors">Contacto</Link>
           </div>
         </div>
       </footer>
-
     </main>
   )
 }
