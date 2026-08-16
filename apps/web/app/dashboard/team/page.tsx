@@ -7,6 +7,7 @@ type Slot = {
   startsAt: string
   endsAt: string
   city: string
+  localidad: string | null
   sports: string[]
   price: number
   photographer: { user: { fullName: string; avatarUrl: string | null } }
@@ -62,7 +63,7 @@ export default async function TeamDashboard({
                   </div>
                   <div>
                     <p className="font-medium text-sm">{slot.photographer.user.fullName}</p>
-                    <p className="text-xs" style={{ color: 'var(--text-muted)' }}>{slot.city}</p>
+                    <p className="text-xs" style={{ color: 'var(--text-muted)' }}>{slot.localidad ? `${slot.localidad}, ${slot.city}` : slot.city}</p>
                   </div>
                 </div>
                 <div className="flex flex-wrap gap-1">

@@ -9,6 +9,7 @@ type Franja = {
   startsAt: string
   endsAt: string
   city: string
+  localidad: string | null
   sports: string[]
   price: number
   status: SlotStatus
@@ -263,8 +264,8 @@ export default function CalendarioPage() {
                     <p className="font-medium text-sm">{fmtTime(new Date(selectedFranja.endsAt))}</p>
                   </div>
                   <div>
-                    <p className="text-xs mb-0.5" style={{ color: 'var(--text-muted)' }}>Provincia</p>
-                    <p className="text-sm font-medium">{selectedFranja.city}</p>
+                    <p className="text-xs mb-0.5" style={{ color: 'var(--text-muted)' }}>Ubicación</p>
+                    <p className="text-sm font-medium">{selectedFranja.localidad ? `${selectedFranja.localidad}, ${selectedFranja.city}` : selectedFranja.city}</p>
                   </div>
                   <div>
                     <p className="text-xs mb-0.5" style={{ color: 'var(--text-muted)' }}>Deportes</p>

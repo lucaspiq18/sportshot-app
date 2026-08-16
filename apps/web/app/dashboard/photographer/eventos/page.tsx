@@ -7,6 +7,7 @@ type TeamEvent = {
   eventName: string
   sport: string
   city: string
+  localidad: string | null
   eventDate: string
   budget: number
   description: string | null
@@ -77,7 +78,7 @@ export default async function ExplorarEventosPage({
                 </div>
                 <div className="flex flex-wrap gap-2">
                   <span className="px-2 py-0.5 rounded-full text-xs" style={{ background: 'var(--bg)', color: 'var(--accent)' }}>{ev.sport}</span>
-                  <span className="px-2 py-0.5 rounded-full text-xs" style={{ background: 'var(--bg)', color: 'var(--text-muted)' }}>📍 {ev.city}</span>
+                  <span className="px-2 py-0.5 rounded-full text-xs" style={{ background: 'var(--bg)', color: 'var(--text-muted)' }}>📍 {ev.localidad ? `${ev.localidad}, ${ev.city}` : ev.city}</span>
                   <span className="px-2 py-0.5 rounded-full text-xs" style={{ background: 'var(--bg)', color: 'var(--text-muted)' }}>
                     {new Date(ev.eventDate).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })}
                   </span>
