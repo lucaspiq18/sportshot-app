@@ -1,5 +1,6 @@
 import { apiServer } from '@/lib/api'
 import Link from 'next/link'
+import ProvinceFilter from './ProvinceFilter'
 
 type Slot = {
   id: string
@@ -19,12 +20,18 @@ type Booking = {
   photographer: { user: { fullName: string } }
 }
 
-export default async function TeamDashboard() {
+export default async function TeamDashboard({
+  searchParams,
+}: {
+  searchParams: Promise<{ city?: string }>
+}) {
+  const { city } = await searchParams
   let slots: Slot[] = []
   let bookings: Booking[] = []
 
   try {
-    slots = await apiServer<Slot[]>('/slots')
+    const query = city ? `?city=${encodeURIComponent(city)}` : ''
+    slots = await apiServer<Slot[]>(`/slots${query}`)
   } catch {}
   try {
     bookings = await apiServer<Booking[]>('/bookings')
@@ -39,7 +46,10 @@ export default async function TeamDashboard() {
 
       {/* Explorar fotógrafos */}
       <section>
-        <h2 className="text-lg font-semibold mb-4">Fotógrafos disponibles</h2>
+        <div className="flex items-center justify-between mb-4 gap-4 flex-wrap">
+          <h2 className="text-lg font-semibold">Fotógrafos disponibles</h2>
+          <ProvinceFilter selected={city} />
+        </div>
         {slots.length === 0 ? (
           <p className="text-sm" style={{ color: 'var(--text-muted)' }}>No hay slots disponibles en este momento.</p>
         ) : (
