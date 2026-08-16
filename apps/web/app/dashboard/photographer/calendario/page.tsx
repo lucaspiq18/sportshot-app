@@ -74,6 +74,7 @@ export default function CalendarioPage() {
     startTime: '09:00',
     endTime: '13:00',
     sports: [] as string[],
+    localidad: '',
     provincia: '',
     price: '',
   })
@@ -97,7 +98,7 @@ export default function CalendarioPage() {
     const y = day.getFullYear()
     const m = String(day.getMonth() + 1).padStart(2, '0')
     const d = String(day.getDate()).padStart(2, '0')
-    setForm({ date: `${y}-${m}-${d}`, startTime: '09:00', endTime: '13:00', sports: [], provincia: '', price: '' })
+    setForm({ date: `${y}-${m}-${d}`, startTime: '09:00', endTime: '13:00', sports: [], localidad: '', provincia: '', price: '' })
     setSelectedFranja(null)
     setShowForm(true)
     setError('')
@@ -111,7 +112,7 @@ export default function CalendarioPage() {
 
   async function handleCreate(e: React.FormEvent) {
     e.preventDefault()
-    if (!form.date || form.sports.length === 0 || !form.price || !form.provincia) {
+    if (!form.date || form.sports.length === 0 || !form.price || !form.provincia || !form.localidad) {
       setError('Completa todos los campos')
       return
     }
@@ -131,6 +132,7 @@ export default function CalendarioPage() {
           sports: form.sports,
           price: Math.round(Number(form.price) * 100),
           city: form.provincia,
+          localidad: form.localidad,
         }),
       })
       setShowForm(false)
@@ -321,10 +323,22 @@ export default function CalendarioPage() {
                     </div>
                   </div>
 
-                  {/* Provincia */}
-                  <div>
-                    <label className="block text-xs font-medium mb-1.5" style={{ color: 'var(--text-muted)' }}>Provincia</label>
-                    <select
+                  {/* Localidad + Provincia */}
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-xs font-medium mb-1.5" style={{ color: 'var(--text-muted)' }}>Localidad</label>
+                      <input
+                        required
+                        placeholder="Ej. Getafe"
+                        value={form.localidad}
+                        onChange={e => setForm(f => ({ ...f, localidad: e.target.value }))}
+                        className="w-full px-4 py-2.5 rounded-xl border text-sm outline-none"
+                        style={{ background: 'var(--bg)', borderColor: 'var(--border)', color: 'var(--text)' }}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium mb-1.5" style={{ color: 'var(--text-muted)' }}>Provincia</label>
+                      <select
                       required
                       value={form.provincia}
                       onChange={e => setForm(f => ({ ...f, provincia: e.target.value }))}
@@ -334,6 +348,7 @@ export default function CalendarioPage() {
                       <option value="">Selecciona provincia</option>
                       {PROVINCIAS.map(p => <option key={p} value={p}>{p}</option>)}
                     </select>
+                    </div>
                   </div>
 
                   {/* Deportes */}

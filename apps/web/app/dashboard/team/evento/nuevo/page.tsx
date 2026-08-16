@@ -23,6 +23,7 @@ export default function NuevoEventoPage() {
   const [form, setForm] = useState({
     eventName: '',
     sport: '',
+    localidad: '',
     city: '',
     eventDate: '',
     eventTime: '10:00',
@@ -43,6 +44,7 @@ export default function NuevoEventoPage() {
           eventName: form.eventName,
           sport: form.sport,
           city: form.city,
+          localidad: form.localidad || undefined,
           eventDate,
           budget: Math.round(parseFloat(form.budget) * 100),
           description: form.description || undefined,
@@ -73,13 +75,23 @@ export default function NuevoEventoPage() {
           className={inputClass} style={inputStyle}
         />
 
+        <div>
+          <label className="text-xs mb-1.5 block" style={{ color: 'var(--text-muted)' }}>Deporte</label>
+          <input
+            required placeholder="Baloncesto"
+            value={form.sport}
+            onChange={e => setForm(f => ({ ...f, sport: e.target.value }))}
+            className={inputClass} style={inputStyle}
+          />
+        </div>
+
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="text-xs mb-1.5 block" style={{ color: 'var(--text-muted)' }}>Deporte</label>
+            <label className="text-xs mb-1.5 block" style={{ color: 'var(--text-muted)' }}>Localidad</label>
             <input
-              required placeholder="Baloncesto"
-              value={form.sport}
-              onChange={e => setForm(f => ({ ...f, sport: e.target.value }))}
+              placeholder="Ej. Alcorcón"
+              value={form.localidad}
+              onChange={e => setForm(f => ({ ...f, localidad: e.target.value }))}
               className={inputClass} style={inputStyle}
             />
           </div>

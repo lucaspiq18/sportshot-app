@@ -8,6 +8,7 @@ const createSlotSchema = z.object({
   sports: z.array(z.string()).min(1),
   price: z.number().int().min(0),
   city: z.string().min(1),
+  localidad: z.string().optional(),
 })
 
 const searchSlotsSchema = z.object({
@@ -33,6 +34,7 @@ export async function slotsRoutes(app: FastifyInstance) {
         sports: body.sports,
         price: body.price,
         city: body.city,
+        localidad: body.localidad,
       },
     })
 

@@ -132,6 +132,7 @@ model AvailabilitySlot {
   sports         String[]
   price          Int        @default(0)
   city           String
+  localidad      String?
   status         SlotStatus @default(open)
   createdAt      DateTime   @default(now())
 
@@ -196,6 +197,7 @@ model TeamEvent {
   eventName   String
   sport       String
   city        String
+  localidad   String?
   eventDate   DateTime
   budget      Int
   description String?
