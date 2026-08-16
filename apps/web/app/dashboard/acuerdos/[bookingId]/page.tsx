@@ -18,13 +18,13 @@ type Booking = {
   status: string
   createdAt: string
   currentUserId: string
-  offer: { eventName: string; eventDate: string } | null
+  offer: { eventName: string } | null
   bid: { teamEvent: { eventName: string; eventDate: string; city: string; sport: string } } | null
   slot: { startsAt: string; city: string; sports: string[] } | null
   team: { clubName: string; user: { fullName: string } }
   photographer: { user: { fullName: string; id: string } }
-  delivery: { status: string; photoUrls: string[] } | null
-  payment: { status: string; amount: number } | null
+  delivery: { deliveredAt: string; approvedAt: string | null; photoCount: number } | null
+  payment: { amount: number } | null
 }
 
 const STATUS_LABEL: Record<string, string> = {
@@ -127,7 +127,7 @@ export default function AcuerdoDetailPage() {
 
   const sc = STATUS_COLOR[booking.status] ?? STATUS_COLOR.confirmed
   const eventName = booking.offer?.eventName ?? booking.bid?.teamEvent.eventName ?? 'Acuerdo'
-  const eventDate = booking.offer?.eventDate ?? booking.bid?.teamEvent.eventDate
+  const eventDate = booking.bid?.teamEvent.eventDate
   const locationStr = booking.bid?.teamEvent.city ?? booking.slot?.city ?? null
 
   return (
@@ -156,8 +156,8 @@ export default function AcuerdoDetailPage() {
             { label: 'Fecha del evento', value: eventDate ? fmtDate(eventDate) : '—' },
             { label: 'Ubicación', value: locationStr ?? '—' },
             { label: 'Acuerdo creado', value: fmtDate(booking.createdAt) },
-            booking.payment && { label: 'Pago', value: booking.payment.status === 'pending' ? 'Pendiente' : booking.payment.status === 'released' ? 'Liberado' : booking.payment.status },
-            booking.delivery && { label: 'Entrega', value: booking.delivery.status === 'pending' ? 'Pendiente' : booking.delivery.status === 'approved' ? 'Aprobada' : 'Entregada' },
+            booking.payment && { label: 'Precio acordado', value: `${(booking.payment.amount / 100).toFixed(0)} €` },
+            booking.delivery && { label: 'Entrega', value: booking.delivery.approvedAt ? 'Aprobada' : 'Entregada, pendiente de aprobación' },
           ].filter(Boolean).map((row: any) => (
             <div key={row.label} className="p-3 rounded-xl" style={{ background: 'var(--bg)' }}>
               <p className="text-xs mb-0.5" style={{ color: 'var(--text-muted)' }}>{row.label}</p>

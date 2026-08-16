@@ -8,7 +8,7 @@ type Booking = {
   agreedPrice: number
   status: string
   createdAt: string
-  offer: { eventName: string; eventDate: string } | null
+  offer: { eventName: string } | null
   bid: { teamEvent: { eventName: string; eventDate: string; city: string } } | null
   team: { clubName: string }
   photographer: { user: { fullName: string } }
@@ -35,7 +35,7 @@ function eventName(b: Booking) {
 }
 
 function eventDate(b: Booking) {
-  const raw = b.offer?.eventDate ?? b.bid?.teamEvent.eventDate
+  const raw = b.bid?.teamEvent.eventDate
   if (!raw) return null
   return new Date(raw).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' })
 }

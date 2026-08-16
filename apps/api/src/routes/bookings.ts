@@ -19,7 +19,7 @@ export async function bookingsRoutes(app: FastifyInstance) {
     const bookings = await prisma.booking.findMany({
       where,
       include: {
-        offer: { select: { eventName: true, eventDate: true } },
+        offer: { select: { eventName: true } },
         bid: { include: { teamEvent: { select: { eventName: true, eventDate: true, city: true } } } },
         team: { select: { clubName: true } },
         photographer: { select: { user: { select: { fullName: true } } } },
@@ -38,13 +38,13 @@ export async function bookingsRoutes(app: FastifyInstance) {
     const booking = await prisma.booking.findUnique({
       where: { id },
       include: {
-        offer: { select: { eventName: true, eventDate: true } },
+        offer: { select: { eventName: true } },
         bid: { include: { teamEvent: { select: { eventName: true, eventDate: true, city: true, sport: true } } } },
         slot: { select: { startsAt: true, endsAt: true, city: true, sports: true } },
         team: { select: { clubName: true, user: { select: { fullName: true } } } },
         photographer: { select: { user: { select: { fullName: true, id: true } } } },
-        delivery: { select: { status: true, photoUrls: true } },
-        payment: { select: { status: true, amount: true } },
+        delivery: { select: { deliveredAt: true, approvedAt: true, photoCount: true } },
+        payment: { select: { amount: true } },
       },
     })
 
