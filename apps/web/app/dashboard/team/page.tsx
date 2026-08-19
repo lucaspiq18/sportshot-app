@@ -17,7 +17,8 @@ type Booking = {
   id: string
   agreedPrice: number
   status: string
-  offer: { eventName: string; eventDate: string }
+  offer: { eventName: string } | null
+  bid: { teamEvent: { eventName: string } } | null
   photographer: { user: { fullName: string } }
 }
 
@@ -140,7 +141,7 @@ export default async function TeamDashboard({
             {bookings.map((b) => (
               <div key={b.id} className="p-4 rounded-xl border flex items-center justify-between" style={{ background: 'var(--surface)', borderColor: 'var(--border)' }}>
                 <div>
-                  <p className="font-medium text-sm">{b.offer.eventName}</p>
+                  <p className="font-medium text-sm">{b.offer?.eventName ?? b.bid?.teamEvent.eventName ?? 'Reserva'}</p>
                   <p className="text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>{b.photographer.user.fullName} · {(b.agreedPrice / 100).toFixed(0)}€</p>
                 </div>
                 <span className="px-2 py-1 rounded-full text-xs font-medium" style={{ background: b.status === 'confirmed' ? '#1a3a2a' : '#2a1a1a', color: b.status === 'confirmed' ? '#4ade80' : '#f87171' }}>
