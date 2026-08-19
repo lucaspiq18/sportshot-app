@@ -22,7 +22,7 @@ type Booking = {
   bid: { teamEvent: { eventName: string; eventDate: string; city: string; sport: string } } | null
   slot: { startsAt: string; city: string; sports: string[] } | null
   team: { clubName: string; user: { fullName: string } }
-  photographer: { user: { fullName: string; id: string } }
+  photographer: { userId: string; user: { fullName: string } }
   delivery: { deliveredAt: string; approvedAt: string | null; photoCount: number; filesUrl: string[] } | null
   payment: { amount: number } | null
 }
@@ -56,6 +56,10 @@ export default function AcuerdoDetailPage() {
   const [messages, setMessages] = useState<Message[]>([])
   const [text, setText] = useState('')
   const [sending, setSending] = useState(false)
+  const [deliveryUrl, setDeliveryUrl] = useState('')
+  const [deliveryCount, setDeliveryCount] = useState('')
+  const [deliverySending, setDeliverySending] = useState(false)
+  const [deliveryError, setDeliveryError] = useState('')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const bottomRef = useRef<HTMLDivElement>(null)
@@ -100,6 +104,29 @@ export default function AcuerdoDetailPage() {
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages])
+
+  async function handleDelivery(e: React.FormEvent) {
+    e.preventDefault()
+    if (!deliveryUrl.trim() || !deliveryCount) return
+    setDeliverySending(true)
+    setDeliveryError('')
+    try {
+      const token = await getToken()
+      if (!token) return
+      await apiClient(`/bookings/${bookingId}/delivery`, token, {
+        method: 'POST',
+        body: JSON.stringify({ filesUrl: [deliveryUrl.trim()], photoCount: Number(deliveryCount) }),
+      })
+      const data = await apiClient<Booking>(`/bookings/${bookingId}`, token)
+      setBooking(data)
+      setDeliveryUrl('')
+      setDeliveryCount('')
+    } catch (err: any) {
+      setDeliveryError(err?.message ?? 'Error al registrar la entrega')
+    } finally {
+      setDeliverySending(false)
+    }
+  }
 
   async function handleSend(e: React.FormEvent) {
     e.preventDefault()
@@ -181,9 +208,12 @@ export default function AcuerdoDetailPage() {
       </div>
 
       {/* Fotos entregadas */}
-      {booking.delivery && booking.delivery.filesUrl.length > 0 && (
+      {booking.delivery ? (
         <div className="p-5 rounded-2xl border" style={{ background: 'var(--surface)', borderColor: 'var(--border)' }}>
-          <p className="font-semibold text-sm mb-3">Fotos entregadas</p>
+          <p className="font-semibold text-sm mb-1">Fotos entregadas</p>
+          <p className="text-xs mb-3" style={{ color: 'var(--text-muted)' }}>
+            {booking.delivery.photoCount} foto{booking.delivery.photoCount !== 1 ? 's' : ''} · {booking.delivery.approvedAt ? 'Entrega aprobada' : 'Pendiente de aprobación'}
+          </p>
           <div className="flex flex-col gap-2">
             {booking.delivery.filesUrl.map((url, i) => (
               <a
@@ -191,7 +221,7 @@ export default function AcuerdoDetailPage() {
                 href={url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm truncate hover:opacity-80 transition-opacity"
+                className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm hover:opacity-80 transition-opacity"
                 style={{ background: 'var(--bg)', color: 'var(--accent)', border: '1px solid var(--border)' }}
               >
                 <span style={{ flexShrink: 0 }}>🔗</span>
@@ -199,11 +229,43 @@ export default function AcuerdoDetailPage() {
               </a>
             ))}
           </div>
-          <p className="text-xs mt-2" style={{ color: 'var(--text-muted)' }}>
-            {booking.delivery.photoCount} foto{booking.delivery.photoCount !== 1 ? 's' : ''} · {booking.delivery.approvedAt ? 'Entrega aprobada' : 'Pendiente de aprobación'}
-          </p>
         </div>
-      )}
+      ) : booking.currentUserId === booking.photographer.userId && booking.status === 'confirmed' ? (
+        <div className="p-5 rounded-2xl border" style={{ background: 'var(--surface)', borderColor: 'var(--border)' }}>
+          <p className="font-semibold text-sm mb-1">Entregar fotos</p>
+          <p className="text-xs mb-4" style={{ color: 'var(--text-muted)' }}>Pega el enlace donde el equipo puede descargar las fotos (Google Drive, WeTransfer, Dropbox…)</p>
+          <form onSubmit={handleDelivery} className="flex flex-col gap-3">
+            <input
+              value={deliveryUrl}
+              onChange={e => setDeliveryUrl(e.target.value)}
+              placeholder="https://drive.google.com/…"
+              type="url"
+              className="w-full px-4 py-2.5 rounded-xl border text-sm outline-none focus:border-[var(--accent)]"
+              style={{ background: 'var(--bg)', borderColor: 'var(--border)', color: 'var(--text)' }}
+            />
+            <div className="flex gap-2 items-center">
+              <input
+                value={deliveryCount}
+                onChange={e => setDeliveryCount(e.target.value)}
+                placeholder="Nº de fotos"
+                type="number"
+                min="1"
+                className="w-32 px-4 py-2.5 rounded-xl border text-sm outline-none focus:border-[var(--accent)]"
+                style={{ background: 'var(--bg)', borderColor: 'var(--border)', color: 'var(--text)' }}
+              />
+              <button
+                type="submit"
+                disabled={deliverySending || !deliveryUrl.trim() || !deliveryCount}
+                className="flex-1 py-2.5 rounded-xl text-sm font-semibold disabled:opacity-40"
+                style={{ background: 'var(--accent)', color: '#0a0f14' }}
+              >
+                {deliverySending ? 'Enviando…' : 'Registrar entrega'}
+              </button>
+            </div>
+            {deliveryError && <p className="text-xs" style={{ color: '#f87171' }}>{deliveryError}</p>}
+          </form>
+        </div>
+      ) : null}
 
       {/* Chat */}
       <div className="flex flex-col rounded-2xl border overflow-hidden" style={{ background: 'var(--surface)', borderColor: 'var(--border)' }}>
