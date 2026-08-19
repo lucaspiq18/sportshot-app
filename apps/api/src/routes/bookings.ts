@@ -66,18 +66,23 @@ export async function bookingsRoutes(app: FastifyInstance) {
     const { id } = req.params as { id: string }
     const { teamId, photographerId } = req.user
 
-    const booking = await prisma.booking.findUnique({ where: { id }, select: { teamId: true, photographerId: true } })
-    if (!booking || (booking.teamId !== teamId && booking.photographerId !== photographerId)) {
-      return reply.status(403).send({ data: null, error: { code: 'FORBIDDEN', message: '' } })
+    try {
+      const booking = await prisma.booking.findUnique({ where: { id }, select: { teamId: true, photographerId: true } })
+      if (!booking || (booking.teamId !== teamId && booking.photographerId !== photographerId)) {
+        return reply.status(403).send({ data: null, error: { code: 'FORBIDDEN', message: '' } })
+      }
+
+      const messages = await prisma.message.findMany({
+        where: { bookingId: id },
+        include: { sender: { select: { id: true, fullName: true } } },
+        orderBy: { createdAt: 'asc' },
+      })
+
+      return { data: messages, error: null }
+    } catch (e: any) {
+      app.log.error(e)
+      return reply.status(500).send({ data: null, error: { code: 'INTERNAL', message: e?.message ?? 'Error interno' } })
     }
-
-    const messages = await prisma.message.findMany({
-      where: { bookingId: id },
-      include: { sender: { select: { id: true, fullName: true } } },
-      orderBy: { createdAt: 'asc' },
-    })
-
-    return { data: messages, error: null }
   })
 
   // POST /bookings/:id/messages
@@ -86,16 +91,21 @@ export async function bookingsRoutes(app: FastifyInstance) {
     const { teamId, photographerId, userId } = req.user
     const { content } = z.object({ content: z.string().min(1).max(2000) }).parse(req.body)
 
-    const booking = await prisma.booking.findUnique({ where: { id }, select: { teamId: true, photographerId: true } })
-    if (!booking || (booking.teamId !== teamId && booking.photographerId !== photographerId)) {
-      return reply.status(403).send({ data: null, error: { code: 'FORBIDDEN', message: '' } })
+    try {
+      const booking = await prisma.booking.findUnique({ where: { id }, select: { teamId: true, photographerId: true } })
+      if (!booking || (booking.teamId !== teamId && booking.photographerId !== photographerId)) {
+        return reply.status(403).send({ data: null, error: { code: 'FORBIDDEN', message: '' } })
+      }
+
+      const message = await prisma.message.create({
+        data: { bookingId: id, senderId: userId, content },
+        include: { sender: { select: { id: true, fullName: true } } },
+      })
+
+      return { data: message, error: null }
+    } catch (e: any) {
+      app.log.error(e)
+      return reply.status(500).send({ data: null, error: { code: 'INTERNAL', message: e?.message ?? 'Error interno' } })
     }
-
-    const message = await prisma.message.create({
-      data: { bookingId: id, senderId: userId, content },
-      include: { sender: { select: { id: true, fullName: true } } },
-    })
-
-    return { data: message, error: null }
   })
 }

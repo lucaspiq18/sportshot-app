@@ -77,8 +77,10 @@ export default function AcuerdoDetailPage() {
         if (!token) return
         const data = await apiClient<Booking>(`/bookings/${bookingId}`, token)
         setBooking(data)
-        const msgs = await apiClient<Message[]>(`/bookings/${bookingId}/messages`, token)
-        setMessages(msgs)
+        try {
+          const msgs = await apiClient<Message[]>(`/bookings/${bookingId}/messages`, token)
+          setMessages(msgs)
+        } catch {}
       } catch (e: any) {
         setError(e?.message ?? 'Error al cargar el acuerdo')
       } finally {
