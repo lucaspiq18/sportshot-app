@@ -101,14 +101,26 @@ async function main() {
     }
   })
 
-  // One-time migration: add referral columns if missing
+  // One-time migrations: add missing columns/tables if not present
   setTimeout(async () => {
     try {
       await prisma.$executeRawUnsafe(`ALTER TABLE "photographers" ADD COLUMN IF NOT EXISTS "referralCode" TEXT UNIQUE`)
       await prisma.$executeRawUnsafe(`ALTER TABLE "photographers" ADD COLUMN IF NOT EXISTS "referredById" TEXT REFERENCES "photographers"("id") ON DELETE SET NULL`)
       await prisma.$executeRawUnsafe(`ALTER TABLE "payments" ADD COLUMN IF NOT EXISTS "referrerPhotographerId" TEXT`)
       await prisma.$executeRawUnsafe(`ALTER TABLE "payments" ADD COLUMN IF NOT EXISTS "referrerPayout" INTEGER NOT NULL DEFAULT 0`)
-      console.log('Migration: referral columns applied')
+      await prisma.$executeRawUnsafe(`ALTER TABLE "availability_slots" ADD COLUMN IF NOT EXISTS "localidad" TEXT`)
+      await prisma.$executeRawUnsafe(`ALTER TABLE "team_events" ADD COLUMN IF NOT EXISTS "localidad" TEXT`)
+      await prisma.$executeRawUnsafe(`
+        CREATE TABLE IF NOT EXISTS "messages" (
+          "id" TEXT NOT NULL PRIMARY KEY,
+          "bookingId" TEXT NOT NULL REFERENCES "bookings"("id"),
+          "senderId" TEXT NOT NULL REFERENCES "users"("id"),
+          "content" TEXT NOT NULL,
+          "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP
+        )
+      `)
+      await prisma.$executeRawUnsafe(`CREATE INDEX IF NOT EXISTS "messages_bookingId_createdAt_idx" ON "messages"("bookingId", "createdAt")`)
+      console.log('Migration: all columns/tables applied')
     } catch (e) {
       console.error('Migration error:', (e as Error).message)
     }
