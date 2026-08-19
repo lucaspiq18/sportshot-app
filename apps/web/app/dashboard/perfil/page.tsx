@@ -1,3 +1,4 @@
+export const dynamic = 'force-dynamic'
 import { apiServer } from '@/lib/api'
 import { ProfileClient } from './ProfileClient'
 

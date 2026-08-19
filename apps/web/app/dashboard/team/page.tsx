@@ -2,6 +2,8 @@ import { apiServer } from '@/lib/api'
 import Link from 'next/link'
 import ProvinceFilter from './ProvinceFilter'
 
+export const dynamic = 'force-dynamic'
+
 type Slot = {
   id: string
   startsAt: string

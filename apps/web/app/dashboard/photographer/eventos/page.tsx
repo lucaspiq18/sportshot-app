@@ -1,3 +1,4 @@
+export const dynamic = 'force-dynamic'
 import { apiServer } from '@/lib/api'
 import Link from 'next/link'
 import CityFilter from './CityFilter'
