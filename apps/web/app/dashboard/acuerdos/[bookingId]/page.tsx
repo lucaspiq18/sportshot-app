@@ -60,6 +60,7 @@ export default function AcuerdoDetailPage() {
   const [deliveryCount, setDeliveryCount] = useState('')
   const [deliverySending, setDeliverySending] = useState(false)
   const [deliveryError, setDeliveryError] = useState('')
+  const [approving, setApproving] = useState(false)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const bottomRef = useRef<HTMLDivElement>(null)
@@ -104,6 +105,19 @@ export default function AcuerdoDetailPage() {
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages])
+
+  async function handleApprove() {
+    setApproving(true)
+    try {
+      const token = await getToken()
+      if (!token) return
+      await apiClient(`/bookings/${bookingId}/delivery/approve`, token, { method: 'POST' })
+      const data = await apiClient<Booking>(`/bookings/${bookingId}`, token)
+      setBooking(data)
+    } catch {} finally {
+      setApproving(false)
+    }
+  }
 
   async function handleDelivery(e: React.FormEvent) {
     e.preventDefault()
@@ -212,8 +226,18 @@ export default function AcuerdoDetailPage() {
         <div className="p-5 rounded-2xl border" style={{ background: 'var(--surface)', borderColor: 'var(--border)' }}>
           <p className="font-semibold text-sm mb-1">Fotos entregadas</p>
           <p className="text-xs mb-3" style={{ color: 'var(--text-muted)' }}>
-            {booking.delivery.photoCount} foto{booking.delivery.photoCount !== 1 ? 's' : ''} · {booking.delivery.approvedAt ? 'Entrega aprobada' : 'Pendiente de aprobación'}
+            {booking.delivery.photoCount} foto{booking.delivery.photoCount !== 1 ? 's' : ''} · {booking.delivery.approvedAt ? 'Entrega aprobada ✓' : 'Pendiente de aprobación'}
           </p>
+          {!booking.delivery.approvedAt && booking.currentUserId !== booking.photographer.userId && (
+            <button
+              onClick={handleApprove}
+              disabled={approving}
+              className="w-full py-2.5 rounded-xl text-sm font-semibold disabled:opacity-40 mb-3"
+              style={{ background: 'var(--accent)', color: '#0a0f14' }}
+            >
+              {approving ? 'Aprobando…' : 'Aprobar entrega y liberar pago'}
+            </button>
+          )}
           <div className="flex flex-col gap-2">
             {booking.delivery.filesUrl.map((url, i) => (
               <a
