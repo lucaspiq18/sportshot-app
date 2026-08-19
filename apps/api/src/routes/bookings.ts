@@ -44,7 +44,7 @@ export async function bookingsRoutes(app: FastifyInstance) {
           slot: { select: { startsAt: true, endsAt: true, city: true, sports: true } },
           team: { select: { clubName: true } },
           photographer: { select: { userId: true, user: { select: { fullName: true } } } },
-          delivery: { select: { deliveredAt: true, approvedAt: true, photoCount: true } },
+          delivery: { select: { deliveredAt: true, approvedAt: true, photoCount: true, filesUrl: true } },
           payment: { select: { amount: true } },
         },
       })

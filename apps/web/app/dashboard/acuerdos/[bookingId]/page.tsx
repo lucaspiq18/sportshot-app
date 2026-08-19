@@ -23,7 +23,7 @@ type Booking = {
   slot: { startsAt: string; city: string; sports: string[] } | null
   team: { clubName: string; user: { fullName: string } }
   photographer: { user: { fullName: string; id: string } }
-  delivery: { deliveredAt: string; approvedAt: string | null; photoCount: number } | null
+  delivery: { deliveredAt: string; approvedAt: string | null; photoCount: number; filesUrl: string[] } | null
   payment: { amount: number } | null
 }
 
@@ -179,6 +179,31 @@ export default function AcuerdoDetailPage() {
           ))}
         </div>
       </div>
+
+      {/* Fotos entregadas */}
+      {booking.delivery && booking.delivery.filesUrl.length > 0 && (
+        <div className="p-5 rounded-2xl border" style={{ background: 'var(--surface)', borderColor: 'var(--border)' }}>
+          <p className="font-semibold text-sm mb-3">Fotos entregadas</p>
+          <div className="flex flex-col gap-2">
+            {booking.delivery.filesUrl.map((url, i) => (
+              <a
+                key={i}
+                href={url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm truncate hover:opacity-80 transition-opacity"
+                style={{ background: 'var(--bg)', color: 'var(--accent)', border: '1px solid var(--border)' }}
+              >
+                <span style={{ flexShrink: 0 }}>🔗</span>
+                <span className="truncate">{url}</span>
+              </a>
+            ))}
+          </div>
+          <p className="text-xs mt-2" style={{ color: 'var(--text-muted)' }}>
+            {booking.delivery.photoCount} foto{booking.delivery.photoCount !== 1 ? 's' : ''} · {booking.delivery.approvedAt ? 'Entrega aprobada' : 'Pendiente de aprobación'}
+          </p>
+        </div>
+      )}
 
       {/* Chat */}
       <div className="flex flex-col rounded-2xl border overflow-hidden" style={{ background: 'var(--surface)', borderColor: 'var(--border)' }}>
