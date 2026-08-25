@@ -63,6 +63,8 @@ export default function AcuerdoDetailPage() {
   const [deliveryOk, setDeliveryOk] = useState(false)
   const [approving, setApproving] = useState(false)
   const [approveError, setApproveError] = useState('')
+  const [paying, setPaying] = useState(false)
+  const [payError, setPayError] = useState('')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const bottomRef = useRef<HTMLDivElement>(null)
@@ -107,6 +109,26 @@ export default function AcuerdoDetailPage() {
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages])
+
+  async function handlePay() {
+    setPaying(true)
+    setPayError('')
+    try {
+      const token = await getToken()
+      if (!token) return
+      const data = await apiClient<{ url: string }>(`/bookings/${bookingId}/checkout-session`, token, {
+        method: 'POST',
+        body: JSON.stringify({
+          successUrl: `${window.location.origin}/dashboard/acuerdos/${bookingId}?paid=1`,
+          cancelUrl: window.location.href,
+        }),
+      })
+      window.location.href = data.url
+    } catch (e: any) {
+      setPayError(e?.message ?? 'Error al iniciar el pago')
+      setPaying(false)
+    }
+  }
 
   async function handleApprove() {
     setApproving(true)
@@ -226,6 +248,25 @@ export default function AcuerdoDetailPage() {
           ))}
         </div>
       </div>
+
+      {/* Pago pendiente — solo equipo, solo si no hay pago */}
+      {!booking.payment && booking.currentUserId !== booking.photographer.userId && booking.status === 'confirmed' && (
+        <div className="p-5 rounded-2xl border" style={{ background: 'var(--surface)', borderColor: 'var(--border)' }}>
+          <p className="font-semibold text-sm mb-1">Pago pendiente</p>
+          <p className="text-xs mb-4" style={{ color: 'var(--text-muted)' }}>
+            El pago queda retenido hasta que apruebes la entrega de las fotos. Solo se cobra si todo es correcto.
+          </p>
+          <button
+            onClick={handlePay}
+            disabled={paying}
+            className="w-full py-3 rounded-xl text-sm font-semibold disabled:opacity-40"
+            style={{ background: 'var(--accent)', color: '#0a0f14' }}
+          >
+            {paying ? 'Redirigiendo a Stripe…' : `Pagar ${(booking.agreedPrice / 100).toFixed(0)} €`}
+          </button>
+          {payError && <p className="text-xs mt-2" style={{ color: '#f87171' }}>{payError}</p>}
+        </div>
+      )}
 
       {/* Fotos entregadas */}
       {booking.delivery ? (
