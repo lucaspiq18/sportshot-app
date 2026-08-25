@@ -60,6 +60,7 @@ export default function AcuerdoDetailPage() {
   const [deliveryCount, setDeliveryCount] = useState('')
   const [deliverySending, setDeliverySending] = useState(false)
   const [deliveryError, setDeliveryError] = useState('')
+  const [deliveryOk, setDeliveryOk] = useState(false)
   const [approving, setApproving] = useState(false)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -135,6 +136,7 @@ export default function AcuerdoDetailPage() {
       setBooking(data)
       setDeliveryUrl('')
       setDeliveryCount('')
+      setDeliveryOk(true)
     } catch (err: any) {
       setDeliveryError(err?.message ?? 'Error al registrar la entrega')
     } finally {
@@ -287,6 +289,7 @@ export default function AcuerdoDetailPage() {
               </button>
             </div>
             {deliveryError && <p className="text-xs" style={{ color: '#f87171' }}>{deliveryError}</p>}
+            {deliveryOk && <p className="text-xs font-medium" style={{ color: '#4ade80' }}>✓ Entrega registrada correctamente</p>}
           </form>
         </div>
       ) : null}
