@@ -275,32 +275,44 @@ export default function AcuerdoDetailPage() {
           <p className="text-xs mb-3" style={{ color: 'var(--text-muted)' }}>
             {booking.delivery.photoCount} foto{booking.delivery.photoCount !== 1 ? 's' : ''} · {booking.delivery.approvedAt ? 'Entrega aprobada ✓' : 'Pendiente de aprobación'}
           </p>
-          {!booking.delivery.approvedAt && booking.currentUserId !== booking.photographer.userId && (
-            <button
-              onClick={handleApprove}
-              disabled={approving}
-              className="w-full py-2.5 rounded-xl text-sm font-semibold disabled:opacity-40 mb-3"
-              style={{ background: 'var(--accent)', color: '#0a0f14' }}
-            >
-              {approving ? 'Aprobando…' : 'Aprobar entrega y liberar pago'}
-            </button>
-            {approveError && <p className="text-xs mt-1" style={{ color: '#f87171' }}>{approveError}</p>}
+
+          {/* El equipo solo ve el enlace si ya pagó */}
+          {(booking.currentUserId === booking.photographer.userId || booking.payment) ? (
+            <>
+              {!booking.delivery.approvedAt && booking.currentUserId !== booking.photographer.userId && (
+                <>
+                  <button
+                    onClick={handleApprove}
+                    disabled={approving}
+                    className="w-full py-2.5 rounded-xl text-sm font-semibold disabled:opacity-40 mb-2"
+                    style={{ background: 'var(--accent)', color: '#0a0f14' }}
+                  >
+                    {approving ? 'Aprobando…' : 'Aprobar entrega y liberar pago'}
+                  </button>
+                  {approveError && <p className="text-xs mb-2" style={{ color: '#f87171' }}>{approveError}</p>}
+                </>
+              )}
+              <div className="flex flex-col gap-2">
+                {booking.delivery.filesUrl.map((url, i) => (
+                  <a
+                    key={i}
+                    href={url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm hover:opacity-80 transition-opacity"
+                    style={{ background: 'var(--bg)', color: 'var(--accent)', border: '1px solid var(--border)' }}
+                  >
+                    <span style={{ flexShrink: 0 }}>🔗</span>
+                    <span className="truncate">{url}</span>
+                  </a>
+                ))}
+              </div>
+            </>
+          ) : (
+            <p className="text-sm py-2" style={{ color: 'var(--text-muted)' }}>
+              Las fotos estarán disponibles una vez completes el pago.
+            </p>
           )}
-          <div className="flex flex-col gap-2">
-            {booking.delivery.filesUrl.map((url, i) => (
-              <a
-                key={i}
-                href={url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm hover:opacity-80 transition-opacity"
-                style={{ background: 'var(--bg)', color: 'var(--accent)', border: '1px solid var(--border)' }}
-              >
-                <span style={{ flexShrink: 0 }}>🔗</span>
-                <span className="truncate">{url}</span>
-              </a>
-            ))}
-          </div>
         </div>
       ) : booking.currentUserId === booking.photographer.userId && booking.status === 'confirmed' ? (
         <div className="p-5 rounded-2xl border" style={{ background: 'var(--surface)', borderColor: 'var(--border)' }}>
