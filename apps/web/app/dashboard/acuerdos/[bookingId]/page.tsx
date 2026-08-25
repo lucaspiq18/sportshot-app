@@ -62,6 +62,7 @@ export default function AcuerdoDetailPage() {
   const [deliveryError, setDeliveryError] = useState('')
   const [deliveryOk, setDeliveryOk] = useState(false)
   const [approving, setApproving] = useState(false)
+  const [approveError, setApproveError] = useState('')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const bottomRef = useRef<HTMLDivElement>(null)
@@ -109,13 +110,16 @@ export default function AcuerdoDetailPage() {
 
   async function handleApprove() {
     setApproving(true)
+    setApproveError('')
     try {
       const token = await getToken()
       if (!token) return
       await apiClient(`/bookings/${bookingId}/delivery/approve`, token, { method: 'POST' })
       const data = await apiClient<Booking>(`/bookings/${bookingId}`, token)
       setBooking(data)
-    } catch {} finally {
+    } catch (e: any) {
+      setApproveError(e?.message ?? 'Error al aprobar la entrega')
+    } finally {
       setApproving(false)
     }
   }
@@ -239,6 +243,7 @@ export default function AcuerdoDetailPage() {
             >
               {approving ? 'Aprobando…' : 'Aprobar entrega y liberar pago'}
             </button>
+            {approveError && <p className="text-xs mt-1" style={{ color: '#f87171' }}>{approveError}</p>}
           )}
           <div className="flex flex-col gap-2">
             {booking.delivery.filesUrl.map((url, i) => (

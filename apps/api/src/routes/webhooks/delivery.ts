@@ -40,7 +40,14 @@ export async function onDeliveryApproved(bookingId: string) {
       })
     : null
 
-  if (!payment || payment.status !== 'authorized') return
+  if (!payment || payment.status !== 'authorized') {
+    // Sin pago Stripe: marcar igual la entrega y el acuerdo como completados
+    await prisma.$transaction([
+      prisma.delivery.update({ where: { bookingId }, data: { approvedAt: new Date() } }),
+      prisma.booking.update({ where: { id: bookingId }, data: { status: 'completed' } }),
+    ])
+    return
+  }
 
   // Capturar el PaymentIntent (sacar el dinero de la tarjeta del equipo)
   await stripe.paymentIntents.capture(payment.stripePaymentIntentId)
