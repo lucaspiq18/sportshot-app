@@ -63,8 +63,8 @@ export async function onDeliveryApproved(bookingId: string) {
     data: { status: 'captured', capturedAt: new Date() },
   })
 
-  // Cancelar el job automático de 48h — ya no es necesario
-  await releaseFundsQueue.remove(`release-${payment.bookingId}`)
+  // Cancelar el job automático de 48h
+  try { await releaseFundsQueue.remove(`release-${payment.bookingId}`) } catch {}
 
   // Transfer al fotógrafo (solo si tiene cuenta Stripe conectada)
   if (!payment.booking.photographer.stripeAccountId) {

@@ -95,8 +95,12 @@ export async function deliveriesRoutes(app: FastifyInstance) {
       return reply.status(400).send({ data: null, error: { code: 'ALREADY_APPROVED', message: 'La entrega ya fue aprobada' } })
     }
 
-    // Captura el pago y transfiere al fotógrafo
-    await onDeliveryApproved(bookingId)
+    try {
+      await onDeliveryApproved(bookingId)
+    } catch (e: any) {
+      app.log.error(e)
+      return reply.status(500).send({ data: null, error: { code: 'INTERNAL', message: e?.message ?? 'Error al procesar la aprobación' } })
+    }
 
     return { data: { ok: true }, error: null }
   })
