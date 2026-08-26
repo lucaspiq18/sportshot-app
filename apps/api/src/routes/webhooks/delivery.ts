@@ -27,6 +27,7 @@ export async function onDeliveryApproved(bookingId: string) {
         include: {
           photographer: { include: { user: true } },
           offer: true,
+          bid: { include: { teamEvent: true } },
         },
       },
     },
@@ -49,8 +50,13 @@ export async function onDeliveryApproved(bookingId: string) {
     return
   }
 
-  // Capturar el PaymentIntent (sacar el dinero de la tarjeta del equipo)
-  await stripe.paymentIntents.capture(payment.stripePaymentIntentId)
+  // Capturar el PaymentIntent
+  try {
+    await stripe.paymentIntents.capture(payment.stripePaymentIntentId)
+  } catch (e: any) {
+    // Si ya estaba capturado o en estado incompatible, continuar igualmente
+    console.error('PI capture error (continuing):', e?.message)
+  }
 
   await prisma.payment.update({
     where: { id: payment.id },
@@ -60,11 +66,20 @@ export async function onDeliveryApproved(bookingId: string) {
   // Cancelar el job automático de 48h — ya no es necesario
   await releaseFundsQueue.remove(`release-${payment.bookingId}`)
 
-  // Transfer al fotógrafo
+  // Transfer al fotógrafo (solo si tiene cuenta Stripe conectada)
+  if (!payment.booking.photographer.stripeAccountId) {
+    await prisma.$transaction([
+      prisma.payment.update({ where: { id: payment.id }, data: { status: 'captured', capturedAt: new Date() } }),
+      prisma.booking.update({ where: { id: bookingId }, data: { status: 'completed' } }),
+      prisma.delivery.update({ where: { bookingId }, data: { approvedAt: new Date() } }),
+    ])
+    return
+  }
+
   const transfer = await stripe.transfers.create({
     amount: payment.photographerPayout,
     currency: 'eur',
-    destination: payment.booking.photographer.stripeAccountId!,
+    destination: payment.booking.photographer.stripeAccountId,
     metadata: { bookingId },
   })
 
@@ -106,10 +121,11 @@ export async function onDeliveryApproved(bookingId: string) {
   // Notificar al fotógrafo que el pago está en camino
   notify.paymentReleased(payment.booking.photographer.userId, payment.photographerPayout).catch(() => {})
 
+  const eventName = (payment.booking as any).offer?.eventName ?? (payment.booking as any).bid?.teamEvent?.eventName ?? 'Sesión fotográfica'
   mail.paymentReleased({
     photographerEmail: payment.booking.photographer.user.email,
     photographerName: payment.booking.photographer.user.fullName,
-    eventName: payment.booking.offer.eventName,
+    eventName,
     grossAmount: payment.amount,
     commissionAmount: payment.commissionAmount,
     netAmount: payment.photographerPayout,
