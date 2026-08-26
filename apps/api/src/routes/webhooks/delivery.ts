@@ -18,119 +18,69 @@ export async function onDeliveryCreated(deliveryId: string, reviewDeadline: Date
 }
 
 // Llamado cuando el equipo aprueba manualmente la entrega antes de las 48h.
-// Captura el PaymentIntent y programa el transfer inmediato.
 export async function onDeliveryApproved(bookingId: string) {
-  const payment = await prisma.payment.findUnique({
-    where: { bookingId },
-    include: {
-      booking: {
-        include: {
-          photographer: { include: { user: true } },
-          offer: true,
-          bid: { include: { teamEvent: true } },
-        },
-      },
-    },
-  })
-
-  // Cargar referidor si existe
-  const referrerPhotographer = payment?.referrerPhotographerId
-    ? await prisma.photographer.findUnique({
-        where: { id: payment.referrerPhotographerId },
-        include: { user: true },
-      })
-    : null
-
-  if (!payment || payment.status !== 'authorized') {
-    // Sin pago Stripe: marcar igual la entrega y el acuerdo como completados
-    await prisma.$transaction([
-      prisma.delivery.update({ where: { bookingId }, data: { approvedAt: new Date() } }),
-      prisma.booking.update({ where: { id: bookingId }, data: { status: 'completed' } }),
-    ])
-    return
-  }
-
-  // Capturar el PaymentIntent
-  try {
-    await stripe.paymentIntents.capture(payment.stripePaymentIntentId)
-  } catch (e: any) {
-    // Si ya estaba capturado o en estado incompatible, continuar igualmente
-    console.error('PI capture error (continuing):', e?.message)
-  }
-
-  await prisma.payment.update({
-    where: { id: payment.id },
-    data: { status: 'captured', capturedAt: new Date() },
-  })
-
-  // Cancelar el job automático de 48h
-  try { await releaseFundsQueue.remove(`release-${payment.bookingId}`) } catch {}
-
-  // Transfer al fotógrafo (solo si tiene cuenta Stripe conectada)
-  if (!payment.booking.photographer.stripeAccountId) {
-    await prisma.$transaction([
-      prisma.payment.update({ where: { id: payment.id }, data: { status: 'captured', capturedAt: new Date() } }),
-      prisma.booking.update({ where: { id: bookingId }, data: { status: 'completed' } }),
-      prisma.delivery.update({ where: { bookingId }, data: { approvedAt: new Date() } }),
-    ])
-    return
-  }
-
-  const transfer = await stripe.transfers.create({
-    amount: payment.photographerPayout,
-    currency: 'eur',
-    destination: payment.booking.photographer.stripeAccountId,
-    metadata: { bookingId },
-  })
-
-  // Transfer al referidor (1%) si existe y tiene cuenta Stripe
-  let referrerTransferId: string | null = null
-  if (referrerPhotographer?.stripeOnboarded && referrerPhotographer.stripeAccountId && payment.referrerPayout > 0) {
-    const referrerTransfer = await stripe.transfers.create({
-      amount: payment.referrerPayout,
-      currency: 'eur',
-      destination: referrerPhotographer.stripeAccountId,
-      metadata: { bookingId, type: 'referral' },
-    })
-    referrerTransferId = referrerTransfer.id
-  }
-
+  // Primero marcar entrega y booking como completados — esto nunca falla
   await prisma.$transaction([
-    prisma.payment.update({
-      where: { id: payment.id },
-      data: {
-        stripeTransferId: transfer.id,
-        stripeReferrerTransferId: referrerTransferId,
-        status: 'transferred',
-        transferredAt: new Date(),
-      },
-    }),
-    prisma.booking.update({
-      where: { id: bookingId },
-      data: { status: 'completed' },
-    }),
-    prisma.delivery.update({
-      where: { bookingId },
-      data: { approvedAt: new Date() },
-    }),
+    prisma.delivery.update({ where: { bookingId }, data: { approvedAt: new Date() } }),
+    prisma.booking.update({ where: { id: bookingId }, data: { status: 'completed' } }),
   ])
 
-  // Actualizar tier del fotógrafo si supera umbral de volumen
-  await recalculateTier(payment.booking.photographer.id, payment.photographerPayout)
+  // Intentar operaciones Stripe en best-effort (no bloquean el flujo)
+  try {
+    const payment = await prisma.payment.findUnique({
+      where: { bookingId },
+      include: {
+        booking: {
+          include: {
+            photographer: { include: { user: true } },
+            offer: true,
+            bid: { include: { teamEvent: true } },
+          },
+        },
+      },
+    })
 
-  // Notificar al fotógrafo que el pago está en camino
-  notify.paymentReleased(payment.booking.photographer.userId, payment.photographerPayout).catch(() => {})
+    if (!payment || payment.status !== 'authorized') return
 
-  const eventName = (payment.booking as any).offer?.eventName ?? (payment.booking as any).bid?.teamEvent?.eventName ?? 'Sesión fotográfica'
-  mail.paymentReleased({
-    photographerEmail: payment.booking.photographer.user.email,
-    photographerName: payment.booking.photographer.user.fullName,
-    eventName,
-    grossAmount: payment.amount,
-    commissionAmount: payment.commissionAmount,
-    netAmount: payment.photographerPayout,
-    tier: payment.booking.photographer.tier,
-  }).catch(() => {})
+    try { await stripe.paymentIntents.capture(payment.stripePaymentIntentId) } catch {}
+    try { await releaseFundsQueue.remove(`release-${bookingId}`) } catch {}
+
+    await prisma.payment.update({
+      where: { id: payment.id },
+      data: { status: 'captured', capturedAt: new Date() },
+    })
+
+    const photographer = payment.booking.photographer
+    if (!photographer.stripeAccountId || !photographer.stripeOnboarded) return
+
+    const transfer = await stripe.transfers.create({
+      amount: payment.photographerPayout,
+      currency: 'eur',
+      destination: photographer.stripeAccountId,
+      metadata: { bookingId },
+    })
+
+    await prisma.payment.update({
+      where: { id: payment.id },
+      data: { stripeTransferId: transfer.id, status: 'transferred', transferredAt: new Date() },
+    })
+
+    recalculateTier(photographer.id, payment.photographerPayout).catch(() => {})
+    notify.paymentReleased(photographer.userId, payment.photographerPayout).catch(() => {})
+
+    const eventName = payment.booking.offer?.eventName ?? (payment.booking as any).bid?.teamEvent?.eventName ?? 'Sesión fotográfica'
+    mail.paymentReleased({
+      photographerEmail: photographer.user.email,
+      photographerName: photographer.user.fullName,
+      eventName,
+      grossAmount: payment.amount,
+      commissionAmount: payment.commissionAmount,
+      netAmount: payment.photographerPayout,
+      tier: photographer.tier,
+    }).catch(() => {})
+  } catch (e) {
+    console.error('onDeliveryApproved Stripe error (non-fatal):', e)
+  }
 }
 
 async function recalculateTier(photographerId: string, newEarnings: number) {
