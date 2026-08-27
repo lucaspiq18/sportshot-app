@@ -75,33 +75,33 @@ export async function deliveriesRoutes(app: FastifyInstance) {
 
   // Equipo aprueba la entrega antes de las 48h
   app.post('/bookings/:bookingId/delivery/approve', async (req, reply) => {
-    const { bookingId } = req.params as { bookingId: string }
-    const teamId = req.user.teamId
-
-    const booking = await prisma.booking.findUnique({
-      where: { id: bookingId },
-      include: { delivery: true },
-    })
-
-    if (!booking || booking.teamId !== teamId) {
-      return reply.status(404).send({ data: null, error: { code: 'NOT_FOUND', message: 'Reserva no encontrada' } })
-    }
-
-    if (!booking.delivery) {
-      return reply.status(400).send({ data: null, error: { code: 'NO_DELIVERY', message: 'El fotógrafo aún no ha entregado el material' } })
-    }
-
-    if (booking.delivery.approvedAt) {
-      return reply.status(400).send({ data: null, error: { code: 'ALREADY_APPROVED', message: 'La entrega ya fue aprobada' } })
-    }
-
     try {
+      const { bookingId } = req.params as { bookingId: string }
+      const teamId = req.user.teamId
+
+      const booking = await prisma.booking.findUnique({
+        where: { id: bookingId },
+        include: { delivery: true },
+      })
+
+      if (!booking || booking.teamId !== teamId) {
+        return reply.status(404).send({ data: null, error: { code: 'NOT_FOUND', message: 'Reserva no encontrada' } })
+      }
+
+      if (!booking.delivery) {
+        return reply.status(400).send({ data: null, error: { code: 'NO_DELIVERY', message: 'El fotógrafo aún no ha entregado el material' } })
+      }
+
+      if (booking.delivery.approvedAt) {
+        return reply.status(400).send({ data: null, error: { code: 'ALREADY_APPROVED', message: 'La entrega ya fue aprobada' } })
+      }
+
       await onDeliveryApproved(bookingId)
+
+      return { data: { ok: true }, error: null }
     } catch (e: any) {
       app.log.error(e)
-      return reply.status(500).send({ data: null, error: { code: 'INTERNAL', message: e?.message ?? 'Error al procesar la aprobación' } })
+      return reply.status(500).send({ data: null, error: { code: 'INTERNAL', message: e?.message ?? 'Error desconocido' } })
     }
-
-    return { data: { ok: true }, error: null }
   })
 }
