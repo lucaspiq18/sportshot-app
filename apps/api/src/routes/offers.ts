@@ -2,7 +2,7 @@ import type { FastifyInstance } from 'fastify'
 import { randomUUID } from 'crypto'
 import { z } from 'zod'
 import { prisma } from '../lib/prisma'
-import { stripe, calculateSplit, COMMISSION_PCT } from '../lib/stripe'
+import { stripe } from '../lib/stripe'
 import { notify } from '../lib/notifications'
 import { mail } from '../emails/index'
 import { scheduleEventReminder } from '../jobs/event-reminder'
@@ -152,23 +152,9 @@ export async function offersRoutes(app: FastifyInstance) {
     }
 
     const bookingId = randomUUID()
-    const referrer = photographer.referredBy ?? null
 
-    const { commissionAmount, photographerPayout, referrerPayout } = calculateSplit(
-      offer.budgetOffered,
-      !!referrer,
-    )
-
-    const paymentIntent = await stripe.paymentIntents.create({
-      amount: offer.budgetOffered,
-      currency: 'eur',
-      capture_method: 'manual',
-      application_fee_amount: commissionAmount,
-      transfer_data: { destination: photographer.stripeAccountId! },
-      metadata: { offerId: offer.id, bookingId },
-    })
-
-    // Transacción atómica: aceptar oferta, rechazar el resto, cerrar slot, crear booking y payment
+    // Transacción atómica: aceptar oferta, rechazar el resto, cerrar slot, crear booking
+    // El pago se gestiona cuando el equipo pague desde la página del acuerdo (Checkout Session)
     const [booking] = await prisma.$transaction([
       prisma.booking.create({
         data: {
@@ -178,18 +164,6 @@ export async function offersRoutes(app: FastifyInstance) {
           teamId: offer.teamId,
           photographerId,
           agreedPrice: offer.budgetOffered,
-        },
-      }),
-      prisma.payment.create({
-        data: {
-          bookingId,
-          stripePaymentIntentId: paymentIntent.id,
-          amount: offer.budgetOffered,
-          commissionPct: COMMISSION_PCT,
-          commissionAmount,
-          photographerPayout,
-          referrerPhotographerId: referrer?.id ?? null,
-          referrerPayout,
         },
       }),
       prisma.offer.update({

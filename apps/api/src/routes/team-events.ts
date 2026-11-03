@@ -2,7 +2,7 @@ import type { FastifyInstance } from 'fastify'
 import { randomUUID } from 'crypto'
 import { z } from 'zod'
 import { prisma } from '../lib/prisma'
-import { stripe, calculateSplit, COMMISSION_PCT } from '../lib/stripe'
+import { stripe } from '../lib/stripe'
 
 const createEventSchema = z.object({
   eventName: z.string().min(1),
@@ -173,18 +173,8 @@ export async function teamEventsRoutes(app: FastifyInstance) {
     }
 
     const bookingId = randomUUID()
-    const referrer = bid.photographer.referredBy ?? null
-    const { commissionAmount, photographerPayout, referrerPayout } = calculateSplit(bid.proposedPrice, !!referrer)
 
-    const paymentIntent = await stripe.paymentIntents.create({
-      amount: bid.proposedPrice,
-      currency: 'eur',
-      capture_method: 'manual',
-      application_fee_amount: commissionAmount,
-      transfer_data: { destination: bid.photographer.stripeAccountId! },
-      metadata: { bidId: bid.id, bookingId },
-    })
-
+    // El pago se gestiona cuando el equipo pague desde la página del acuerdo (Checkout Session)
     const [booking] = await prisma.$transaction([
       prisma.booking.create({
         data: {
@@ -193,18 +183,6 @@ export async function teamEventsRoutes(app: FastifyInstance) {
           teamId,
           photographerId: bid.photographerId,
           agreedPrice: bid.proposedPrice,
-        },
-      }),
-      prisma.payment.create({
-        data: {
-          bookingId,
-          stripePaymentIntentId: paymentIntent.id,
-          amount: bid.proposedPrice,
-          commissionPct: COMMISSION_PCT,
-          commissionAmount,
-          photographerPayout,
-          referrerPhotographerId: referrer?.id ?? null,
-          referrerPayout,
         },
       }),
       prisma.photographerBid.update({ where: { id: bidId }, data: { status: 'accepted' } }),
