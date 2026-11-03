@@ -163,21 +163,30 @@ export async function bookingsRoutes(app: FastifyInstance) {
         sessionParams.payment_intent_data.transfer_data = { destination: booking.photographer.stripeAccountId }
       }
 
-      const session = await stripe.checkout.sessions.create(sessionParams)
-
-      // Pre-crear el registro de pago para que el webhook solo lo actualice
-      await prisma.payment.create({
-        data: {
-          bookingId: id,
-          stripePaymentIntentId: session.payment_intent as string,
-          amount: booking.agreedPrice,
-          commissionPct: COMMISSION_PCT,
-          commissionAmount,
-          photographerPayout,
-          referrerPhotographerId: null,
-          referrerPayout: 0,
-        },
+      const session = await stripe.checkout.sessions.create({
+        ...sessionParams,
+        expand: ['payment_intent'],
       })
+
+      // Obtener el payment_intent ID — puede venir expandido o como string
+      const pi = session.payment_intent
+      const piId = typeof pi === 'string' ? pi : pi?.id ?? null
+
+      if (piId) {
+        await prisma.payment.create({
+          data: {
+            bookingId: id,
+            stripePaymentIntentId: piId,
+            amount: booking.agreedPrice,
+            commissionPct: COMMISSION_PCT,
+            commissionAmount,
+            photographerPayout,
+            referrerPhotographerId: null,
+            referrerPayout: 0,
+          },
+        })
+      }
+      // Si piId es null, el Payment se crea cuando llegue el webhook checkout.session.completed
 
       return { data: { url: session.url }, error: null }
     } catch (e: any) {
